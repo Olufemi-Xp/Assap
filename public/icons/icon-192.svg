@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" fill="none">
+  <defs>
+    <linearGradient id="asap-teal-grad-192" x1="24" y1="168" x2="168" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#044E46" />
+      <stop offset="45%" stopColor="#0F766E" />
+      <stop offset="100%" stopColor="#14B8A6" />
+    </linearGradient>
+    <linearGradient id="asap-bolt-grad-192" x1="72" y1="56" x2="128" y2="144" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#FBBF24" />
+      <stop offset="60%" stopColor="#F59E0B" />
+      <stop offset="100%" stopColor="#D97706" />
+    </linearGradient>
+    <linearGradient id="asap-highlight-192" x1="48" y1="32" x2="144" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.35" />
+      <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.0" />
+    </linearGradient>
+  </defs>
+
+  <rect x="10" y="10" width="172" height="172" rx="44" fill="url(#asap-teal-grad-192)" stroke="#14B8A6" stroke-opacity="0.4" stroke-width="4.8"/>
+
+  <!-- Left Ascension Wing of A -->
+  <path d="M50 142L88.8 51.2C91.2 45.6 96.8 42 102.8 42C108.8 42 114.4 45.6 116.8 51.2L155.6 142C157.6 146.8 154 152 148.8 152H132.4C128.4 152 124.8 149.6 123.2 146L114.4 124H77.6L68.8 146C67.2 149.6 63.6 152 59.6 152H43.2C38 152 34.4 146.8 36.4 142H50Z" fill="#FFFFFF" fill-opacity="0.95"/>
+
+  <!-- Apex cutout -->
+  <path d="M96 66L108 100H84L96 66Z" fill="url(#asap-teal-grad-192)"/>
+
+  <!-- Swift Bolt -->
+  <path d="M106 48L70 102H94L80 150L126 90H102L106 48Z" fill="url(#asap-bolt-grad-192)" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- Gloss arc -->
+  <path d="M18 56C18 35 35 18 56 18H136C157 18 174 35 174 56C174 44 157 34 136 34H56C35 34 18 44 18 56Z" fill="url(#asap-highlight-192)"/>
+</svg>
