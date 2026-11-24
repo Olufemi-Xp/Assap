@@ -113,12 +113,16 @@ To set up the database tables, security rules, and automatic profile triggers:
    * Navigate to **APIs & Services** -> **OAuth consent screen**.
      * Select **External** user type and click Create.
      * Fill in App name: **ASAP**, User support email, and Developer contact information. Click Save and Continue through scopes.
+     * **CRITICAL FOR EXTERNAL USERS:** Under **Publishing status**, if your app is in **Testing** mode, Google will **BLOCK** any user who is not explicitly listed under **Test users**.
+       * If you want anyone with a Google account to sign in: Click **PUBLISH APP** to switch to production.
+       * If keeping in Testing mode: Under **Test users**, click **ADD USERS** and enter the Gmail addresses of every person testing from an external device.
    * Navigate to **APIs & Services** -> **Credentials**.
      * Click **Create Credentials** -> **OAuth client ID**.
      * Application type: Select **Web application**.
      * Name: **ASAP Web Client**.
      * Under **Authorized redirect URIs**, click **Add URI** and paste your Supabase callback URL:
        `https://<your-project-ref>.supabase.co/auth/v1/callback`
+       *(Note: External device IPs like `192.168.x.x` do NOT go here; Google only talks to Supabase!)*
      * Click **Create**.
      * Copy the generated **Client ID** and **Client Secret**.
 3. **Enable Google Provider in Supabase:**
@@ -130,20 +134,55 @@ To set up the database tables, security rules, and automatic profile triggers:
 
 ---
 
-## Step 5: Configure Site URL, Redirect URLs, and Email Auth
+## Step 5: Configure Site URL, Redirect URLs, and External Device Whitelists
 
 1. **Set Site URL & Redirect URLs in Supabase:**
    * Go to **Authentication** -> **URL Configuration**.
-   * Set **Site URL** to:
-     `http://localhost:3000`
-   * Under **Redirect URLs**, add the following URLs:
+   * Set **Site URL** to your primary development or production domain:
+     `http://localhost:3000` (or `https://your-domain.vercel.app` in production)
+   * **CRITICAL FOR EXTERNAL DEVICES & PHONES:**
+     When external devices on your local Wi-Fi (e.g. `http://192.168.100.81:3000`) or preview deployments connect, Supabase will check if their address is in the **Redirect URLs** list.
+     **If the address is NOT in this list, Supabase will ignore the device and bounce them back to `http://localhost:3000`!**
+     Under **Redirect URLs**, add all of the following wildcard patterns:
      * `http://localhost:3000/**`
      * `http://localhost:3000/auth/callback`
+     * `http://127.0.0.1:3000/**`
+     * `http://192.168.*.*:3000/**` *(allows any mobile device on your local Wi-Fi)*
+     * `http://10.*.*.*:3000/**`
+     * `http://172.*.*.*:3000/**`
+     * `https://*.vercel.app/**` *(for Vercel preview and production deployments)*
+     * `https://**` *(optional fallback wildcard to allow any valid HTTPS domain)*
    * Click **Save**.
-2. **Verify Email Auth Settings:**
+2. **Verify Email Auth Settings & Email Delivery:**
    * Go to **Authentication** -> **Providers** -> **Email**.
    * Ensure **Enable Email provider** is turned ON.
-   * Under **Confirm email**, ensure it is toggled according to your preference (for frictionless OTP login, the built-in `signInWithOtp` sends a 6-digit verification code directly to the user's inbox).
+   * **Why Verification Emails Often Don't Arrive on Free Supabase Projects:**
+     * **Built-in Mailer Rate Limits:** Supabase's default built-in mailer (`noreply@mail.app.supabase.io`) limits projects to **only 2-3 emails per hour**. Any sign-ups beyond this are blocked with `over_email_send_rate_limit`.
+     * **Spam & Domain Reputation:** Because thousands of free projects share `mail.app.supabase.io`, major providers like Gmail and Outlook frequently route these verification emails to **Spam/Promotions** or silently drop them.
+     * **Anti-User Enumeration:** If you test signup multiple times with the same email, Supabase returns a fake success response without sending an email to prevent user enumeration.
+   * **Choose One of the Two Recommended Fixes:**
+     * **Option A: Instant Testing (No Email Friction):**
+       * Under **Authentication** -> **Providers** -> **Email**, toggle **"Confirm email"** to **OFF** and save.
+       * Users who sign up with email/password will be immediately verified and signed into the app without having to wait for an email.
+     * **Option B: Reliable Production Delivery via Custom SMTP (Resend or Brevo):**
+       * In the Supabase Dashboard, go to **Authentication** -> **SMTP Settings**.
+       * Toggle **Enable Custom SMTP** to **ON**.
+       * If using [Resend.com](https://resend.com) (free 3,000 emails/month):
+         * **Sender Email:** `onboarding@yourdomain.com` (or `notifications@yourverifieddomain.com`)
+         * **Sender Name:** `ASAP Nigeria`
+         * **Host:** `smtp.resend.com`
+         * **Port:** `465` (SSL) or `587` (TLS)
+         * **User:** `resend`
+         * **Password:** Your Resend API key (starts with `re_...`)
+       * If using [Brevo.com](https://brevo.com) (free 300 emails/day):
+         * **Host:** `smtp-relay.brevo.com`
+         * **Port:** `587`
+         * **User:** Your Brevo login email
+         * **Password:** Your Brevo SMTP Master Key
+       * Click **Save**.
+   * **How to Inspect Real Email Logs in Supabase:**
+     * In your Supabase Dashboard, go to **Logs** -> **Auth Logs**.
+     * Filter by event `mail.send` to inspect whether emails were delivered, throttled, or rejected by the receiving mail server.
 
 ---
 
@@ -178,3 +217,21 @@ To set up the database tables, security rules, and automatic profile triggers:
 5. **Verify Zero Grace Period & Paystack:**
    * In `/provider/dashboard`, check your active trial badge and expiration countdown.
    * Click **Renew Subscription (₦1,000/mo)** to test the Paystack popup checkout.
+
+---
+
+## 🛠️ Step 7: Apply the Bulletproof Auth & Username Fix in Supabase
+
+If you ever see **"Database error saving new user"** or username constraint issues when signing up, run this quick fix:
+
+1. Open your [Supabase Dashboard](https://supabase.com/dashboard).
+2. Go to **SQL Editor** (icon on the left navigation bar).
+3. Click **New Query**.
+4. Copy the entire contents of [`supabase/migrations/20261124_000004_auth_trigger_and_profiles_fix.sql`](file:///c:/Users/user/Documents/XpAut/ASSAP/supabase/migrations/20261124_000004_auth_trigger_and_profiles_fix.sql) and paste it into the editor.
+5. Click **Run** (green button).
+
+### What this migration fixes:
+- **Adds `username` column** to `public.users` so usernames are saved directly to the database.
+- **Creates `public.profiles` view** for 100% compatibility with any profile queries.
+- **Prevents duplicate email crashes**: Deletes orphan records from previous deleted accounts so the trigger never fails.
+- **Safeguards `auth.users` trigger**: Adds error recovery (`EXCEPTION WHEN OTHERS`) so internal trigger warnings never block sign-up.

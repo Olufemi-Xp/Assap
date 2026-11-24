@@ -18,6 +18,7 @@ export interface DbUser {
   id: string;
   email: string;
   full_name: string;
+  username?: string;
   role: UserRole;
   email_verified_at: string | null;
   state: string | null;

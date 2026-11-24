@@ -9,6 +9,13 @@ export async function middleware(request: NextRequest) {
     },
   });
 
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto =
+    request.headers.get("x-forwarded-proto") || request.nextUrl.protocol.replace(":", "");
+  const host = forwardedHost || request.nextUrl.host;
+  const origin = `${forwardedProto}://${host}`;
+  const isHttps = forwardedProto === "https";
+
   const supabase = createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -23,7 +30,12 @@ export async function middleware(request: NextRequest) {
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+            response.cookies.set(name, value, {
+              ...options,
+              secure: isHttps ? (options.secure ?? true) : false,
+              sameSite: (options.sameSite as any) ?? "lax",
+              path: options.path ?? "/",
+            })
           );
         },
       },
@@ -54,6 +66,24 @@ export async function middleware(request: NextRequest) {
     isProfilePath ||
     isOnboardingPath;
 
+  // Helper to construct redirects that PRESERVE all cookies from response
+  const createRedirect = (targetPathOrUrl: string) => {
+    const url = targetPathOrUrl.startsWith("http://") || targetPathOrUrl.startsWith("https://")
+      ? targetPathOrUrl
+      : `${origin}${targetPathOrUrl.startsWith("/") ? targetPathOrUrl : `/${targetPathOrUrl}`}`;
+
+    const redirectResponse = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, {
+        ...cookie,
+        secure: isHttps ? (cookie.secure ?? true) : false,
+        sameSite: "lax",
+        path: "/",
+      });
+    });
+    return redirectResponse;
+  };
+
   // 1. If an authenticated user visits the landing root (/), redirect them into the platform
   if (isRoot && user) {
     const { data: profile } = await supabase
@@ -63,16 +93,16 @@ export async function middleware(request: NextRequest) {
       .single();
 
     if (profile?.role === "provider") {
-      return NextResponse.redirect(new URL("/provider/dashboard", request.url));
+      return createRedirect("/provider/dashboard");
     }
-    return NextResponse.redirect(new URL("/explore", request.url));
+    return createRedirect("/explore");
   }
 
   // 2. If an unauthenticated visitor tries to access protected platform modules, redirect to root landing gateway
   if (isProtectedPath && !user) {
-    const landingUrl = new URL("/", request.url);
+    const landingUrl = new URL("/", origin);
     landingUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(landingUrl);
+    return createRedirect(landingUrl.toString());
   }
 
   // 3. If an authenticated user is accessing /admin, verify admin role
@@ -84,7 +114,7 @@ export async function middleware(request: NextRequest) {
       .single();
 
     if (profile?.role !== "admin") {
-      return NextResponse.redirect(new URL("/explore", request.url));
+      return createRedirect("/explore");
     }
   }
 

@@ -4,14 +4,14 @@ const envSchema = z.object({
   // Client-Safe Variables
   NEXT_PUBLIC_APP_NAME: z.string().default("ASAP"),
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url().default("https://placeholder-project.supabase.co"),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).default("placeholder-anon-key"),
-  NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: z.string().min(1).default("pk_test_placeholder"),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().default("https://ksmmpbqluzkumfuecddw.supabase.co"),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).default("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzbW1wYnFsdXprdW1mdWVjZGR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MjEzMDEsImV4cCI6MjExMDk5NzMwMX0.NjU7YrVWgex3AouKfw6cNchWx7XmnX1Jc-DYgIuIE88"),
+  NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: z.string().min(1).default("pk_test_1c80d1effbe397cd70b1564860947689dcdf513e"),
 
   // Server-Only Secrets
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).default("placeholder-service-role-key"),
-  PAYSTACK_SECRET_KEY: z.string().min(1).default("sk_test_placeholder"),
-  PAYSTACK_WEBHOOK_SECRET: z.string().min(1).default("placeholder-webhook-secret"),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).default("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzbW1wYnFsdXprdW1mdWVjZGR3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5NTQyMTMwMSwiZXhwIjoyMTEwOTk3MzAxfQ.F9NzAf9VnR6MvwQaolqZzRDuuYvSIsi6YK9g9lCVc5Q"),
+  PAYSTACK_SECRET_KEY: z.string().min(1).default("pk_test_1c80d1effbe397cd70b1564860947689dcdf513e"),
+  PAYSTACK_WEBHOOK_SECRET: z.string().min(1).default("pk_test_1c80d1effbe397cd70b1564860947689dcdf513e"),
   SUBSCRIPTION_MONTHLY_AMOUNT_NGN: z.coerce.number().int().positive().default(1000),
   FREE_TRIAL_DAYS: z.coerce.number().int().positive().default(30),
   OPENROUTER_API_KEY: z.string().default("placeholder-openrouter-key"),

@@ -2,9 +2,10 @@ import assert from "node:assert";
 import test from "node:test";
 import crypto from "node:crypto";
 import { paystackService } from "../../src/services/paystack-service.ts";
+import { env } from "../../src/lib/env.ts";
 
 test("Paystack Webhook Signature Verification", async (t) => {
-  const secret = process.env.PAYSTACK_SECRET_KEY || "sk_test_placeholder";
+  const secret = env.PAYSTACK_SECRET_KEY;
   const payload = JSON.stringify({
     event: "charge.success",
     data: {
