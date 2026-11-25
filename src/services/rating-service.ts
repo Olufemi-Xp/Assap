@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/supabase/db";
 import { AppError, ValidationError } from "@/lib/errors";
 
 export interface SubmitRatingInput {
@@ -10,21 +10,21 @@ export interface SubmitRatingInput {
 
 export const ratingService = {
   async submitRating(input: SubmitRatingInput) {
-    const admin = createAdminClient();
+    const db = await createDbClient();
 
     // Verify customer is not rating their own provider profile
-    const { data: profile } = await admin
+    const { data: profile } = await db
       .from("provider_profiles")
       .select("user_id")
       .eq("id", input.providerId)
-      .single();
+      .maybeSingle();
 
     if (profile && profile.user_id === input.customerId) {
       throw new ValidationError("You cannot rate your own provider listing");
     }
 
     // Upsert rating
-    const { data: rating, error } = await admin
+    const { data: rating, error } = await db
       .from("ratings")
       .upsert(
         {
@@ -43,8 +43,8 @@ export const ratingService = {
       throw new AppError(error.message, 500, "RATING_SUBMISSION_ERROR");
     }
 
-    // Atomically recalculate average_rating and rating_count
-    const { data: allRatings } = await admin
+    // Recalculate average_rating and rating_count (best-effort under RLS)
+    const { data: allRatings } = await db
       .from("ratings")
       .select("stars")
       .eq("provider_id", input.providerId);
@@ -54,7 +54,7 @@ export const ratingService = {
       const sum = allRatings.reduce((acc, curr) => acc + curr.stars, 0);
       const avg = Number((sum / count).toFixed(2));
 
-      await admin
+      await db
         .from("provider_profiles")
         .update({ average_rating: avg, rating_count: count })
         .eq("id", input.providerId);

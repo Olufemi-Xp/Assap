@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import type { ApiResponse } from "@/types/api";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 function parseDataUrl(dataUrl: string): { buffer: Buffer; mime: string; ext: string } | null {
   const match = dataUrl.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,(.+)$/i);
@@ -12,19 +12,19 @@ function parseDataUrl(dataUrl: string): { buffer: Buffer; mime: string; ext: str
 }
 
 async function uploadIdentityAsset(
+  supabase: SupabaseClient,
   bucket: "identity-selfies" | "identity-documents",
   userId: string,
   fileOrDataUrl: File | string | null,
   fallbackPath: string
 ): Promise<string> {
   if (!fileOrDataUrl) return fallbackPath;
-  const admin = createAdminClient();
 
   if (fileOrDataUrl instanceof File && fileOrDataUrl.size > 0) {
     const ext =
       fileOrDataUrl.type === "image/png" ? "png" : fileOrDataUrl.type === "image/webp" ? "webp" : "jpg";
     const path = `${userId}/${Date.now()}.${ext}`;
-    const { error } = await admin.storage
+    const { error } = await supabase.storage
       .from(bucket)
       .upload(path, await fileOrDataUrl.arrayBuffer(), {
         contentType: fileOrDataUrl.type || "image/jpeg",
@@ -37,7 +37,7 @@ async function uploadIdentityAsset(
     const parsed = parseDataUrl(fileOrDataUrl);
     if (!parsed) return fallbackPath;
     const path = `${userId}/${Date.now()}.${parsed.ext}`;
-    const { error } = await admin.storage
+    const { error } = await supabase.storage
       .from(bucket)
       .upload(path, parsed.buffer, { contentType: parsed.mime, upsert: true });
     return error ? fallbackPath : path;
@@ -128,36 +128,38 @@ export async function POST(request: NextRequest) {
       idDocInput = body.idDocumentImage || body.idDocPath || null;
     }
 
-    const admin = createAdminClient();
-
-    // 1. Update public.users record
-    await admin.from("users").upsert({
+    // 1. Update public.users record (fallback gracefully if city/lga aren't migrated)
+    const userBase = {
       id: user.id,
       email: user.email!,
       full_name: businessName || user.user_metadata?.full_name || user.email!.split("@")[0],
       role: role === "provider" ? "provider" : "customer",
       state,
-      city,
-      lga,
       location_area: locationArea,
       email_verified_at: new Date().toISOString(),
-    });
+    };
+    const uRes = await supabase.from("users").upsert({ ...userBase, city, lga });
+    if (uRes.error) {
+      await supabase.from("users").upsert(userBase);
+    }
 
     // 2. Upload & save identity records
     const selfiePath = await uploadIdentityAsset(
+      supabase,
       "identity-selfies",
       user.id,
       selfieInput,
       `${user.id}/selfie-${Date.now()}.jpg`
     );
     const idDocPath = await uploadIdentityAsset(
+      supabase,
       "identity-documents",
       user.id,
       idDocInput,
       `${user.id}/id-${Date.now()}.jpg`
     );
 
-    await admin.from("identity_records").upsert(
+    await supabase.from("identity_records").upsert(
       {
         user_id: user.id,
         id_document_type: idType,
@@ -180,18 +182,18 @@ export async function POST(request: NextRequest) {
         service_category: serviceCategory,
         service_description: descriptionFallback,
         state,
-        city,
-        lga,
         location_area: locationArea,
         phone_number: phone,
         whatsapp_number: whatsapp || phone,
       };
 
-      let { data: profile, error: profileErr } = await admin
+      let { data: profile, error: profileErr } = await supabase
         .from("provider_profiles")
         .upsert(
           {
             ...basePayload,
+            city,
+            lga,
             service_title: serviceTitle || businessName,
             service_areas: serviceAreas,
           },
@@ -200,8 +202,8 @@ export async function POST(request: NextRequest) {
         .select()
         .single();
 
-      if (profileErr && (profileErr.message.includes("service_title") || profileErr.message.includes("service_areas"))) {
-        const retry = await admin
+      if (profileErr) {
+        const retry = await supabase
           .from("provider_profiles")
           .upsert(basePayload, { onConflict: "user_id" })
           .select()
@@ -214,23 +216,27 @@ export async function POST(request: NextRequest) {
         throw new Error(profileErr?.message || "Failed to create provider profile");
       }
 
-      const { data: existingSub } = await admin
-        .from("subscriptions")
-        .select("id")
-        .eq("provider_id", profile.id)
-        .maybeSingle();
+      try {
+        const { data: existingSub } = await supabase
+          .from("subscriptions")
+          .select("id")
+          .eq("provider_id", profile.id)
+          .maybeSingle();
 
-      if (!existingSub) {
-        const now = new Date();
-        const end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-        await admin.from("subscriptions").insert({
-          provider_id: profile.id,
-          plan_type: "free_trial",
-          amount_ngn: 0,
-          status: "active",
-          current_period_start: now.toISOString(),
-          current_period_end: end.toISOString(),
-        });
+        if (!existingSub) {
+          const now = new Date();
+          const end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+          await supabase.from("subscriptions").insert({
+            provider_id: profile.id,
+            plan_type: "free_trial",
+            amount_ngn: 0,
+            status: "active",
+            current_period_start: now.toISOString(),
+            current_period_end: end.toISOString(),
+          });
+        }
+      } catch {
+        // Non-fatal under RLS
       }
 
       return NextResponse.json<ApiResponse>({

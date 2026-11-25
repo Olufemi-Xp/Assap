@@ -1,3 +1,4 @@
+import { createDbClient } from "@/lib/supabase/db";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AppError } from "@/lib/errors";
 import { isSubscriptionActive } from "@/lib/contact-sanitizer";
@@ -6,8 +7,8 @@ import type { DbSubscription } from "@/types/database";
 
 export const subscriptionService = {
   async getStatusByProviderId(providerId: string): Promise<SubscriptionStatusDTO> {
-    const admin = createAdminClient();
-    const { data: subs } = await admin
+    const db = await createDbClient();
+    const { data: subs } = await db
       .from("subscriptions")
       .select("*")
       .eq("provider_id", providerId)

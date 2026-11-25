@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/supabase/db";
 import { AppError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { PORTFOLIO_IMAGE_MAX_BYTES, PORTFOLIO_IMAGE_TYPES, type CreatePortfolioItemInput } from "@/lib/validation/portfolio.schema";
 import { toDisplayName } from "@/services/provider-service";
@@ -28,8 +28,8 @@ function mapItem(row: DbPortfolioItem, likeCount: number, commentCount: number, 
 }
 
 async function getOwnedProviderId(userId: string): Promise<string> {
-  const admin = createAdminClient();
-  const { data, error } = await admin
+  const db = await createDbClient();
+  const { data, error } = await db
     .from("provider_profiles")
     .select("id")
     .eq("user_id", userId)
@@ -41,8 +41,8 @@ async function getOwnedProviderId(userId: string): Promise<string> {
 }
 
 async function getActiveItem(itemId: string): Promise<DbPortfolioItem> {
-  const admin = createAdminClient();
-  const { data, error } = await admin
+  const db = await createDbClient();
+  const { data, error } = await db
     .from("portfolio_items")
     .select("*")
     .eq("id", itemId)
@@ -65,14 +65,14 @@ function validateImage(file: File | null, label: string): File | null {
 }
 
 async function uploadImage(userId: string, file: File, kind: "before" | "after"): Promise<{ path: string; url: string }> {
-  const admin = createAdminClient();
+  const db = await createDbClient();
   const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
   const path = `${userId}/${crypto.randomUUID()}-${kind}.${ext}`;
-  const { error } = await admin.storage
+  const { error } = await db.storage
     .from(BUCKET)
     .upload(path, await file.arrayBuffer(), { contentType: file.type, upsert: false });
   if (error) throw new AppError(`Image upload failed: ${error.message}`, 500, "PORTFOLIO_UPLOAD_ERROR");
-  const { data } = admin.storage.from(BUCKET).getPublicUrl(path);
+  const { data } = db.storage.from(BUCKET).getPublicUrl(path);
   return { path, url: data.publicUrl };
 }
 
@@ -85,8 +85,8 @@ function storagePathFromPublicUrl(url: string | null): string | null {
 
 export const portfolioService = {
   async listByProvider(providerId: string, viewerId?: string | null): Promise<PortfolioItemDTO[]> {
-    const admin = createAdminClient();
-    const { data: rows, error } = await admin
+    const db = await createDbClient();
+    const { data: rows, error } = await db
       .from("portfolio_items")
       .select("*")
       .eq("provider_id", providerId)
@@ -100,8 +100,8 @@ export const portfolioService = {
 
     const ids = items.map((i) => i.id);
     const [{ data: likes }, { data: comments }] = await Promise.all([
-      admin.from("portfolio_likes").select("item_id, user_id").in("item_id", ids),
-      admin.from("portfolio_comments").select("item_id").in("item_id", ids),
+      db.from("portfolio_likes").select("item_id, user_id").in("item_id", ids),
+      db.from("portfolio_comments").select("item_id").in("item_id", ids),
     ]);
 
     const likeCounts = new Map<string, number>();
@@ -139,8 +139,8 @@ export const portfolioService = {
       const afterUpload = after ? await uploadImage(userId, after, "after") : null;
       if (afterUpload) uploaded.push(afterUpload.path);
 
-      const admin = createAdminClient();
-      const { data, error } = await admin
+      const db = await createDbClient();
+      const { data, error } = await db
         .from("portfolio_items")
         .insert({
           provider_id: providerId,
@@ -160,7 +160,8 @@ export const portfolioService = {
       return mapItem(data as DbPortfolioItem, 0, 0, false);
     } catch (err) {
       if (uploaded.length > 0) {
-        await createAdminClient().storage.from(BUCKET).remove(uploaded).catch(() => undefined);
+        const db = await createDbClient();
+        await db.storage.from(BUCKET).remove(uploaded).catch(() => undefined);
       }
       throw err;
     }
@@ -171,20 +172,20 @@ export const portfolioService = {
     const item = await getActiveItem(itemId);
     if (item.provider_id !== providerId) throw new ForbiddenError("You can only delete your own portfolio work.");
 
-    const admin = createAdminClient();
-    const { error } = await admin.from("portfolio_items").delete().eq("id", itemId);
+    const db = await createDbClient();
+    const { error } = await db.from("portfolio_items").delete().eq("id", itemId);
     if (error) throw new AppError(error.message, 500, "PORTFOLIO_DELETE_ERROR");
 
     const paths = [storagePathFromPublicUrl(item.before_image_url), storagePathFromPublicUrl(item.after_image_url)].filter(
       (p): p is string => Boolean(p)
     );
-    if (paths.length > 0) await admin.storage.from(BUCKET).remove(paths).catch(() => undefined);
+    if (paths.length > 0) await db.storage.from(BUCKET).remove(paths).catch(() => undefined);
   },
 
   async toggleLike(userId: string, itemId: string): Promise<{ liked: boolean; likeCount: number }> {
     await getActiveItem(itemId);
-    const admin = createAdminClient();
-    const { data: existing } = await admin
+    const db = await createDbClient();
+    const { data: existing } = await db
       .from("portfolio_likes")
       .select("id")
       .eq("item_id", itemId)
@@ -193,18 +194,18 @@ export const portfolioService = {
 
     let liked: boolean;
     if (existing) {
-      const { error } = await admin.from("portfolio_likes").delete().eq("id", existing.id);
+      const { error } = await db.from("portfolio_likes").delete().eq("id", existing.id);
       if (error) throw new AppError(error.message, 500, "PORTFOLIO_LIKE_ERROR");
       liked = false;
     } else {
-      const { error } = await admin
+      const { error } = await db
         .from("portfolio_likes")
         .upsert({ item_id: itemId, user_id: userId }, { onConflict: "item_id,user_id", ignoreDuplicates: true });
       if (error) throw new AppError(error.message, 500, "PORTFOLIO_LIKE_ERROR");
       liked = true;
     }
 
-    const { count } = await admin
+    const { count } = await db
       .from("portfolio_likes")
       .select("id", { count: "exact", head: true })
       .eq("item_id", itemId);
@@ -213,8 +214,8 @@ export const portfolioService = {
 
   async listComments(itemId: string): Promise<PortfolioCommentDTO[]> {
     await getActiveItem(itemId);
-    const admin = createAdminClient();
-    const { data, error } = await admin
+    const db = await createDbClient();
+    const { data, error } = await db
       .from("portfolio_comments")
       .select("id, item_id, user_id, body, created_at")
       .eq("item_id", itemId)
@@ -226,7 +227,7 @@ export const portfolioService = {
     const userIds = [...new Set(rows.map((r) => r.user_id as string))];
     const names = new Map<string, string>();
     if (userIds.length > 0) {
-      const { data: users } = await admin.from("users").select("id, full_name").in("id", userIds);
+      const { data: users } = await db.from("users").select("id, full_name").in("id", userIds);
       (users || []).forEach((u: { id: string; full_name: string }) => names.set(u.id, toDisplayName(u.full_name, "ASAP member")));
     }
 
@@ -242,8 +243,8 @@ export const portfolioService = {
 
   async addComment(userId: string, authorName: string, itemId: string, body: string): Promise<PortfolioCommentDTO> {
     await getActiveItem(itemId);
-    const admin = createAdminClient();
-    const { data, error } = await admin
+    const db = await createDbClient();
+    const { data, error } = await db
       .from("portfolio_comments")
       .insert({ item_id: itemId, user_id: userId, body })
       .select("id, item_id, user_id, body, created_at")
@@ -262,8 +263,8 @@ export const portfolioService = {
   async recordShare(itemId: string): Promise<{ shareCount: number }> {
     const item = await getActiveItem(itemId);
     const next = (item.share_count || 0) + 1;
-    const admin = createAdminClient();
-    const { error } = await admin.from("portfolio_items").update({ share_count: next }).eq("id", itemId);
+    const db = await createDbClient();
+    const { error } = await db.from("portfolio_items").update({ share_count: next }).eq("id", itemId);
     if (error) throw new AppError(error.message, 500, "PORTFOLIO_SHARE_ERROR");
     return { shareCount: next };
   },

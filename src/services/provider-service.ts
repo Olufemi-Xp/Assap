@@ -1,4 +1,4 @@
-import { createAdminClient } from "../lib/supabase/admin.ts";
+import { createDbClient } from "../lib/supabase/db.ts";
 import { sanitizeProviderContact } from "../lib/contact-sanitizer.ts";
 import { SERVICE_CATEGORIES } from "../lib/constants/service-categories.ts";
 import type { ProviderListItemDTO, ProviderDetailDTO } from "@/types/domain";
@@ -197,8 +197,8 @@ export function toDisplayName(fullName: string | null | undefined, fallback = "V
 }
 
 async function loadRatingsWithNames(providerId: string): Promise<ProviderDetailDTO["ratings"]> {
-  const admin = createAdminClient();
-  const { data: ratings, error } = await admin
+  const db = await createDbClient();
+  const { data: ratings, error } = await db
     .from("ratings")
     .select("id, customer_id, stars, comment, created_at")
     .eq("provider_id", providerId)
@@ -210,7 +210,7 @@ async function loadRatingsWithNames(providerId: string): Promise<ProviderDetailD
   const customerIds = [...new Set(ratings.map((r) => r.customer_id as string))];
   const names = new Map<string, string>();
   if (customerIds.length > 0) {
-    const { data: users } = await admin.from("users").select("id, full_name").in("id", customerIds);
+    const { data: users } = await db.from("users").select("id, full_name").in("id", customerIds);
     (users || []).forEach((u: { id: string; full_name: string }) => names.set(u.id, toDisplayName(u.full_name)));
   }
 
@@ -242,8 +242,8 @@ export const providerService = {
     const pageSize = opts.pageSize || 20;
 
     try {
-      const admin = createAdminClient();
-      let { data: profileRows, error } = await admin
+      const db = await createDbClient();
+      let { data: profileRows, error } = await db
         .from("provider_profiles")
         .select("*, subscriptions(*)")
         .is("deleted_at", null)
@@ -253,7 +253,7 @@ export const providerService = {
 
       // Fallback if subscriptions join fails for any reason
       if (error) {
-        const plain = await admin
+        const plain = await db
           .from("provider_profiles")
           .select("*")
           .is("deleted_at", null)
@@ -280,7 +280,7 @@ export const providerService = {
         location_area: string | null;
       }> = [];
 
-      const uRes = await admin
+      const uRes = await db
         .from("users")
         .select("id, full_name, state, city, lga, location_area")
         .eq("role", "provider")
@@ -289,7 +289,7 @@ export const providerService = {
         .limit(100);
 
       if (uRes.error && isMissingColumnError(uRes.error)) {
-        const uFallback = await admin
+        const uFallback = await db
           .from("users")
           .select("id, full_name, state, location_area")
           .eq("role", "provider")
@@ -340,8 +340,8 @@ export const providerService = {
     if (id.startsWith("user-")) {
       const userId = id.slice(5);
       try {
-        const admin = createAdminClient();
-        const { data: u } = await admin
+        const db = await createDbClient();
+        const { data: u } = await db
           .from("users")
           .select("id, full_name, state, location_area")
           .eq("id", userId)
@@ -372,8 +372,8 @@ export const providerService = {
     }
 
     try {
-      const admin = createAdminClient();
-      const { data: row, error } = await admin
+      const db = await createDbClient();
+      const { data: row, error } = await db
         .from("provider_profiles")
         .select("*, subscriptions(*)")
         .eq("id", id)
@@ -392,8 +392,8 @@ export const providerService = {
   /** Loads the provider listing owned by a given auth user (used by the provider dashboard). */
   async getProviderByUserId(userId: string): Promise<ProviderDetailDTO | null> {
     try {
-      const admin = createAdminClient();
-      const { data: row, error } = await admin
+      const db = await createDbClient();
+      const { data: row, error } = await db
         .from("provider_profiles")
         .select("*, subscriptions(*)")
         .eq("user_id", userId)
@@ -414,7 +414,7 @@ export const providerService = {
     email: string,
     input: ProviderBusinessCardInput
   ): Promise<ProviderDetailDTO> {
-    const admin = createAdminClient();
+    const db = await createDbClient();
     const effectiveLocationArea =
       input.locationArea?.trim() || input.lga?.trim() || input.city?.trim() || input.state;
     const effectiveWhatsapp = input.whatsappNumber?.trim() || input.phoneNumber;
@@ -429,13 +429,13 @@ export const providerService = {
       location_area: effectiveLocationArea,
       updated_at: new Date().toISOString(),
     };
-    const userRes = await admin.from("users").upsert({
+    const userRes = await db.from("users").upsert({
       ...userPayloadBase,
       city: input.city || null,
       lga: input.lga || null,
     });
     if (userRes.error && isMissingColumnError(userRes.error)) {
-      await admin.from("users").upsert(userPayloadBase);
+      await db.from("users").upsert(userPayloadBase);
     }
 
     const summaryDescription = input.serviceDescription?.trim() || input.serviceAreas.join(" | ");
@@ -459,7 +459,7 @@ export const providerService = {
       updated_at: new Date().toISOString(),
     };
 
-    let { data: profile, error } = await admin
+    let { data: profile, error } = await db
       .from("provider_profiles")
       .upsert(fullPayload, { onConflict: "user_id" })
       .select("*, subscriptions(*)")
@@ -478,7 +478,7 @@ export const providerService = {
         whatsapp_number: effectiveWhatsapp,
         updated_at: new Date().toISOString(),
       };
-      const retry = await admin
+      const retry = await db
         .from("provider_profiles")
         .upsert(legacyPayload, { onConflict: "user_id" })
         .select("*, subscriptions(*)")
@@ -491,24 +491,28 @@ export const providerService = {
       throw new Error(error?.message || "Failed to save Service Business Card");
     }
 
-    // Ensure the provider has an initial 30-day free trial if no subscription exists
-    const { data: existingSub } = await admin
-      .from("subscriptions")
-      .select("id")
-      .eq("provider_id", profile.id)
-      .maybeSingle();
+    // Best-effort initial 30-day free trial creation (RLS may restrict direct client inserts on subscriptions)
+    try {
+      const { data: existingSub } = await db
+        .from("subscriptions")
+        .select("id")
+        .eq("provider_id", profile.id)
+        .maybeSingle();
 
-    if (!existingSub) {
-      const now = new Date();
-      const end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-      await admin.from("subscriptions").insert({
-        provider_id: profile.id,
-        plan_type: "free_trial",
-        amount_ngn: 0,
-        status: "active",
-        current_period_start: now.toISOString(),
-        current_period_end: end.toISOString(),
-      });
+      if (!existingSub) {
+        const now = new Date();
+        const end = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        await db.from("subscriptions").insert({
+          provider_id: profile.id,
+          plan_type: "free_trial",
+          amount_ngn: 0,
+          status: "active",
+          current_period_start: now.toISOString(),
+          current_period_end: end.toISOString(),
+        });
+      }
+    } catch {
+      // Non-fatal: profile is saved
     }
 
     const mapped = mapProviderRow(profile as ProviderRow);

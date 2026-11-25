@@ -3,7 +3,7 @@ import { getSessionContext } from "@/lib/auth/session";
 import { apiError, apiOk } from "@/lib/api-response";
 import { AppError, UnauthorizedError, ValidationError } from "@/lib/errors";
 import { normalizeLocation } from "@/lib/constants/nigeria-locations";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 /** PATCH /api/profile/location { state, city, lga } — saves the customer's preferred discovery location. */
 export async function PATCH(request: NextRequest) {
@@ -15,8 +15,8 @@ export async function PATCH(request: NextRequest) {
     const location = normalizeLocation(body);
     if (!location) throw new ValidationError("Select a valid State, City and Local Government.");
 
-    const admin = createAdminClient();
-    const { error } = await admin
+    const supabase = await createServerSupabaseClient();
+    const { error } = await supabase
       .from("users")
       .update({
         state: location.state || null,

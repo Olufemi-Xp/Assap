@@ -1,5 +1,4 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import type { User } from "@supabase/supabase-js";
 import type { UserRole } from "@/types/database";
 
@@ -11,7 +10,7 @@ export interface SessionContext {
 
 /**
  * Resolves the signed-in user (validated against Supabase Auth) and their
- * application role from public.users. Returns null when not signed in.
+ * application role from public.users using the user's authenticated session.
  */
 export async function getSessionContext(): Promise<SessionContext | null> {
   const supabase = await createServerSupabaseClient();
@@ -25,8 +24,7 @@ export async function getSessionContext(): Promise<SessionContext | null> {
   let fullName: string = user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
 
   try {
-    const admin = createAdminClient();
-    const { data } = await admin.from("users").select("role, full_name").eq("id", user.id).maybeSingle();
+    const { data } = await supabase.from("users").select("role, full_name").eq("id", user.id).maybeSingle();
     if (data?.role) role = data.role as UserRole;
     if (data?.full_name) fullName = data.full_name;
   } catch {
