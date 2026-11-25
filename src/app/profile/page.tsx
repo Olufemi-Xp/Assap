@@ -3,7 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
-import { CustomerNavPane } from "@/components/layout/customer-nav-pane";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -54,8 +53,7 @@ export default function ProfilePage() {
 
   return (
     <AppShell>
-      <CustomerNavPane />
-      <div className="max-w-[560px] mx-auto space-y-6 pb-24 lg:pb-6">
+      <div className="max-w-[560px] mx-auto space-y-6">
         {/* Explicit Back to Dashboard / Home Escape Hatch */}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Link href={homeRoute}>

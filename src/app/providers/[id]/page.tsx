@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
-import { CustomerNavPane } from "@/components/layout/customer-nav-pane";
 import { providerService } from "@/services/provider-service";
 import { portfolioService } from "@/services/portfolio-service";
 import { getSessionContext } from "@/lib/auth/session";
@@ -48,8 +47,7 @@ export default async function ProviderDetailPage({
 
   return (
     <AppShell>
-      <CustomerNavPane />
-      <div className="max-w-[780px] mx-auto space-y-6 pb-24 lg:pb-6">
+      <div className="max-w-[780px] mx-auto space-y-6">
         <Link
           href="/explore"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-secondary hover:text-accent-primary transition-colors"

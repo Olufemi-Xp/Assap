@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { AppShell } from "@/components/layout/app-shell";
-import { CustomerNavPane } from "@/components/layout/customer-nav-pane";
 import { LocationSelector } from "@/components/location/location-selector";
 import { ProviderCard } from "@/components/providers/provider-card";
 import { Button } from "@/components/ui/button";
@@ -123,8 +122,7 @@ export default function ExplorePage() {
 
   return (
     <AppShell>
-      <CustomerNavPane />
-      <div className="space-y-6 pb-24 lg:pb-6">
+      <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div className="max-w-[720px]">
             <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-text-primary">
