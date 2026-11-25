@@ -22,6 +22,8 @@ export interface DbUser {
   role: UserRole;
   email_verified_at: string | null;
   state: string | null;
+  city?: string | null;
+  lga?: string | null;
   location_area: string | null;
   is_suspended: boolean;
   deleted_at: string | null;
@@ -46,9 +48,13 @@ export interface DbProviderProfile {
   id: string;
   user_id: string;
   business_name: string;
+  service_title?: string | null;
   service_category: string;
   service_description: string;
+  service_areas?: string[] | null;
   state: string;
+  city?: string | null;
+  lga?: string | null;
   location_area: string;
   phone_number: string;
   whatsapp_number: string;
@@ -111,6 +117,39 @@ export interface DbUserBlock {
   id: string;
   blocker_id: string;
   blocked_user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbPortfolioItem {
+  id: string;
+  provider_id: string;
+  title: string;
+  delivery_story: string;
+  before_image_url: string | null;
+  after_image_url: string | null;
+  job_location: string | null;
+  completed_on: string | null;
+  duration: string | null;
+  extra_details: string | null;
+  share_count: number;
+  deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbPortfolioLike {
+  id: string;
+  item_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface DbPortfolioComment {
+  id: string;
+  item_id: string;
+  user_id: string;
+  body: string;
   created_at: string;
   updated_at: string;
 }

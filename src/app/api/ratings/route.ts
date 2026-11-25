@@ -1,34 +1,31 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { ratingService } from "@/services/rating-service";
 import { createRatingSchema } from "@/lib/validation/rating.schema";
-import type { ApiResponse } from "@/types/api";
+import { getSessionContext } from "@/lib/auth/session";
+import { apiError, apiOk } from "@/lib/api-response";
+import { ForbiddenError, UnauthorizedError, ValidationError } from "@/lib/errors";
 
+/** POST /api/ratings { providerId, stars (1-5), comment } — customer leaves or updates a review. */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const parsed = createRatingSchema.safeParse(body);
+    const session = await getSessionContext();
+    if (!session) throw new UnauthorizedError("Sign in to leave a review.");
+    if (session.role !== "customer") throw new ForbiddenError("Only customer accounts can leave reviews.");
 
+    const parsed = createRatingSchema.safeParse(await request.json().catch(() => ({})));
     if (!parsed.success) {
-      return NextResponse.json<ApiResponse>(
-        { ok: false, error: { code: "VALIDATION_ERROR", message: "Invalid rating input", details: parsed.error.flatten() } },
-        { status: 400 }
-      );
+      throw new ValidationError(parsed.error.issues[0]?.message || "Invalid rating input", parsed.error.flatten());
     }
 
-    // In production, customerId is taken from auth session
-    const customerId = "c0000000-0000-0000-0000-000000000001";
     const rating = await ratingService.submitRating({
       providerId: parsed.data.providerId,
-      customerId,
+      customerId: session.user.id,
       stars: parsed.data.stars,
-      comment: parsed.data.comment,
+      comment: parsed.data.comment?.trim() || null,
     });
 
-    return NextResponse.json<ApiResponse>({ ok: true, data: rating });
+    return apiOk(rating);
   } catch (error) {
-    return NextResponse.json<ApiResponse>(
-      { ok: false, error: { code: "RATING_ERROR", message: (error as Error).message } },
-      { status: 400 }
-    );
+    return apiError(error, "RATING_ERROR");
   }
 }

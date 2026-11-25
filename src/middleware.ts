@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
+import { getHomeRouteForRole, isProviderOnlyPath } from "@/lib/routing";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -33,7 +34,7 @@ export async function middleware(request: NextRequest) {
             response.cookies.set(name, value, {
               ...options,
               secure: isHttps ? (options.secure ?? true) : false,
-              sameSite: (options.sameSite as any) ?? "lax",
+              sameSite: (options.sameSite as "lax" | "strict" | "none" | undefined) ?? "lax",
               path: options.path ?? "/",
             })
           );
@@ -49,10 +50,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isRoot = pathname === "/";
+  const isAuthPage = pathname === "/auth/login" || pathname === "/auth/signup";
   const isExplorePath = pathname === "/explore" || pathname.startsWith("/explore/");
   const isProvidersPath = pathname.startsWith("/providers");
   const isAppPath = pathname === "/app" || pathname.startsWith("/app/");
-  const isProviderPath = pathname.startsWith("/provider");
+  const isProviderPath = isProviderOnlyPath(pathname);
   const isAdminPath = pathname.startsWith("/admin");
   const isProfilePath = pathname.startsWith("/profile");
   const isOnboardingPath = pathname.startsWith("/onboarding");
@@ -66,11 +68,11 @@ export async function middleware(request: NextRequest) {
     isProfilePath ||
     isOnboardingPath;
 
-  // Helper to construct redirects that PRESERVE all cookies from response
   const createRedirect = (targetPathOrUrl: string) => {
-    const url = targetPathOrUrl.startsWith("http://") || targetPathOrUrl.startsWith("https://")
-      ? targetPathOrUrl
-      : `${origin}${targetPathOrUrl.startsWith("/") ? targetPathOrUrl : `/${targetPathOrUrl}`}`;
+    const url =
+      targetPathOrUrl.startsWith("http://") || targetPathOrUrl.startsWith("https://")
+        ? targetPathOrUrl
+        : `${origin}${targetPathOrUrl.startsWith("/") ? targetPathOrUrl : `/${targetPathOrUrl}`}`;
 
     const redirectResponse = NextResponse.redirect(url);
     response.cookies.getAll().forEach((cookie) => {
@@ -84,38 +86,37 @@ export async function middleware(request: NextRequest) {
     return redirectResponse;
   };
 
-  // 1. If an authenticated user visits the landing root (/), redirect them into the platform
-  if (isRoot && user) {
+  let userRole: string | null = null;
+  if (user) {
     const { data: profile } = await supabase
       .from("users")
       .select("role")
       .eq("id", user.id)
-      .single();
-
-    if (profile?.role === "provider") {
-      return createRedirect("/provider/dashboard");
-    }
-    return createRedirect("/explore");
+      .maybeSingle();
+    userRole = profile?.role || (user.user_metadata?.role as string | undefined) || "customer";
   }
 
-  // 2. If an unauthenticated visitor tries to access protected platform modules, redirect to root landing gateway
+  // 1. Authenticated users visiting / or auth pages go to their role-based home
+  //    (unless explicitly navigating to the Welcome Page via /?welcome=1)
+  const stayOnWelcome = isRoot && request.nextUrl.searchParams.get("welcome") === "1";
+  if ((isRoot || isAuthPage) && user && !stayOnWelcome) {
+    return createRedirect(getHomeRouteForRole(userRole));
+  }
+
+  // 2. Unauthenticated visitors on protected routes go directly to Sign In / Sign Up
   if (isProtectedPath && !user) {
-    const landingUrl = new URL("/", origin);
-    landingUrl.searchParams.set("redirect", pathname);
-    return createRedirect(landingUrl.toString());
+    const loginUrl = new URL("/auth/login", origin);
+    loginUrl.searchParams.set("redirect", pathname);
+    return createRedirect(loginUrl.toString());
   }
 
-  // 3. If an authenticated user is accessing /admin, verify admin role
-  if (isAdminPath && user) {
-    const { data: profile } = await supabase
-      .from("users")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+  // 3. Role guards for /admin and /provider/*
+  if (isAdminPath && user && userRole !== "admin") {
+    return createRedirect(getHomeRouteForRole(userRole));
+  }
 
-    if (profile?.role !== "admin") {
-      return createRedirect("/explore");
-    }
+  if (isProviderPath && user && userRole !== "provider" && userRole !== "admin") {
+    return createRedirect("/explore");
   }
 
   return response;
@@ -124,6 +125,8 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/",
+    "/auth/login",
+    "/auth/signup",
     "/explore/:path*",
     "/explore",
     "/providers/:path*",

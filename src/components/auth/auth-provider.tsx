@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { getHomeRouteForRole } from "@/lib/routing";
 import type { User, Session } from "@supabase/supabase-js";
 import type { UserRole } from "@/types/database";
 
@@ -90,9 +91,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const signInWithGoogle = async (selectedRole: UserRole = "customer", next = "/explore") => {
+  const signInWithGoogle = async (selectedRole: UserRole = "customer", next?: string) => {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const callbackUrl = `${origin}/auth/callback?role=${selectedRole}&next=${encodeURIComponent(next)}`;
+    const targetNext = next || getHomeRouteForRole(selectedRole);
+    const callbackUrl = `${origin}/auth/callback?role=${selectedRole}&next=${encodeURIComponent(targetNext)}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",

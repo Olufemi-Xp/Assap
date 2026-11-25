@@ -1,9 +1,20 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
+import { CustomerNavPane } from "@/components/layout/customer-nav-pane";
 import { providerService } from "@/services/provider-service";
+import { portfolioService } from "@/services/portfolio-service";
+import { getSessionContext } from "@/lib/auth/session";
+import { UUID_RE } from "@/lib/api-response";
 import { ProviderContactGate } from "@/components/providers/provider-contact-gate";
+import { ServiceBusinessCard } from "@/components/providers/service-business-card";
+import { PortfolioGallery } from "@/components/portfolio/portfolio-gallery";
+import { ProviderReviews } from "@/components/reviews/provider-reviews";
 import { Card } from "@/components/ui/card";
-import { Star } from "lucide-react";
+import type { PortfolioItemDTO } from "@/types/domain";
+import { ArrowLeft } from "lucide-react";
+
+export const dynamic = "force-dynamic";
 
 export default async function ProviderDetailPage({
   params,
@@ -11,79 +22,86 @@ export default async function ProviderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const provider = await providerService.getProviderById(id);
+  const [provider, session] = await Promise.all([
+    providerService.getProviderById(id),
+    getSessionContext(),
+  ]);
 
   if (!provider) {
     notFound();
   }
 
-  const isContactVisible = provider.canContact;
+  let portfolioItems: PortfolioItemDTO[] = [];
+  if (UUID_RE.test(id)) {
+    try {
+      portfolioItems = await portfolioService.listByProvider(id, session?.user.id ?? null);
+    } catch {
+      portfolioItems = [];
+    }
+  }
+
+  const canReview =
+    Boolean(session) &&
+    session!.role === "customer" &&
+    session!.user.id !== provider.userId &&
+    UUID_RE.test(id);
 
   return (
     <AppShell>
-      <div className="max-w-[720px] mx-auto space-y-6">
-        <Card className="p-6 sm:p-8 space-y-6">
-          <div className="space-y-2">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-text-primary">
-                  {provider.businessName}
-                </h1>
-                <p className="text-xs text-text-muted capitalize mt-1">
-                  {provider.serviceCategory} • {provider.locationArea}, {provider.state}
-                </p>
-              </div>
+      <CustomerNavPane />
+      <div className="max-w-[780px] mx-auto space-y-6 pb-24 lg:pb-6">
+        <Link
+          href="/explore"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-secondary hover:text-accent-primary transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Search Services</span>
+        </Link>
 
-              <span className="flex items-center gap-1 text-sm font-semibold text-text-primary tabular-nums">
-                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                {provider.averageRating > 0 ? provider.averageRating.toFixed(2) : "New"}
-                {provider.ratingCount > 0 && <span className="text-text-muted font-normal text-xs">({provider.ratingCount})</span>}
-              </span>
-            </div>
-          </div>
+        {/* Service Business Card */}
+        <ServiceBusinessCard
+          businessName={provider.businessName}
+          serviceTitle={provider.serviceTitle}
+          serviceCategory={provider.serviceCategory}
+          serviceAreas={provider.serviceAreas}
+          serviceDescription={provider.serviceDescription}
+          state={provider.state}
+          city={provider.city}
+          lga={provider.lga}
+          locationArea={provider.locationArea}
+          averageRating={provider.averageRating}
+          ratingCount={provider.ratingCount}
+        />
 
-          <div className="space-y-2 pt-2 border-t border-border-subtle">
-            <h2 className="text-sm font-semibold text-text-primary">Services offered</h2>
-            <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
-              {provider.serviceDescription}
-            </p>
-          </div>
-
-          <div className="pt-2 border-t border-border-subtle space-y-2">
-            <h2 className="text-xs font-medium text-text-muted">Direct contact</h2>
-            <ProviderContactGate
-              canContact={isContactVisible}
-              phoneNumber={provider.phoneNumber}
-              whatsappNumber={provider.whatsappNumber}
-              businessName={provider.businessName}
-            />
-          </div>
+        {/* Direct Contact Gate */}
+        <Card className="p-5 space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">Direct Contact</h2>
+          <ProviderContactGate
+            canContact={provider.canContact}
+            phoneNumber={provider.phoneNumber}
+            whatsappNumber={provider.whatsappNumber}
+            businessName={provider.businessName}
+          />
         </Card>
 
-        {/* Reviews Section */}
-        <Card className="p-6 space-y-4">
-          <h2 className="text-base font-heading font-bold text-text-primary">
-            Customer reviews ({provider.ratings.length})
-          </h2>
+        {/* Delivered Job History / Portfolio Module */}
+        <PortfolioGallery
+          providerId={provider.id}
+          providerName={provider.businessName}
+          initialItems={portfolioItems}
+          isSignedIn={Boolean(session)}
+        />
 
-          {provider.ratings.length === 0 ? (
-            <p className="text-xs text-text-muted">No reviews recorded yet for this provider.</p>
-          ) : (
-            <div className="space-y-3">
-              {provider.ratings.map((r) => (
-                <div key={r.id} className="p-3.5 rounded-xl border border-border-subtle bg-surface-subtle space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-text-primary">{r.customerName}</span>
-                    <span className="flex items-center gap-0.5 text-text-primary font-semibold tabular-nums">
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {r.stars}
-                    </span>
-                  </div>
-                  {r.comment && <p className="text-xs text-text-secondary">{r.comment}</p>}
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
+        {/* Customer Review Module */}
+        <ProviderReviews
+          providerId={provider.id}
+          initialRatings={provider.ratings}
+          initialAverage={provider.averageRating}
+          initialCount={provider.ratingCount}
+          canReview={canReview}
+          viewerRole={session?.role ?? null}
+          viewerUserId={session?.user.id ?? null}
+        />
       </div>
     </AppShell>
   );

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/auth-provider";
 import { AsapEmblem } from "@/components/brand/asap-logo";
+import { resolvePostAuthDestination } from "@/lib/routing";
 import {
   Search,
   Wrench,
@@ -37,7 +38,9 @@ export function LandingAuthCard({
   const { signInWithGoogle, refreshUser } = useAuth();
   const supabase = createClient();
 
-  const [activeTab, setActiveTab] = useState<"signin" | "signup">(initialTab);
+  const tabParam = searchParams.get("tab");
+  const resolvedInitialTab = tabParam === "signin" || tabParam === "signup" ? tabParam : initialTab;
+  const [activeTab, setActiveTab] = useState<"signin" | "signup">(resolvedInitialTab);
   const [selectedRole, setSelectedRole] = useState<UserRole>("customer");
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
@@ -116,7 +119,7 @@ export function LandingAuthCard({
     try {
       setIsGoogleLoading(true);
       setErrorMessage(null);
-      await signInWithGoogle(selectedRole, redirectTarget);
+      await signInWithGoogle(selectedRole, rawRedirect || undefined);
     } catch (err: any) {
       setErrorMessage(mapAuthError(err));
       setIsGoogleLoading(false);
@@ -223,25 +226,10 @@ export function LandingAuthCard({
         .from("users")
         .select("role")
         .eq("id", data.user.id)
-        .single();
+        .maybeSingle();
 
-      const userRole = profile?.role || "customer";
-
-      if (userRole === "provider") {
-        const { data: providerProfile } = await supabase
-          .from("provider_profiles")
-          .select("id")
-          .eq("user_id", data.user.id)
-          .single();
-
-        if (!providerProfile) {
-          router.push("/onboarding/kyc-capture?role=provider");
-        } else {
-          router.push("/provider/dashboard");
-        }
-      } else {
-        router.push(redirectTarget);
-      }
+      const userRole = profile?.role || (data.user.user_metadata?.role as string | undefined) || "customer";
+      router.push(resolvePostAuthDestination(userRole, rawRedirect));
       router.refresh();
     } catch (err: any) {
       setErrorMessage(mapAuthError(err));
@@ -304,21 +292,13 @@ export function LandingAuthCard({
         if (!signInError && signInData.session) {
           // Password matched! Sign in immediately and navigate to platform
           await refreshUser();
-          if (selectedRole === "provider") {
-            const { data: providerProfile } = await supabase
-              .from("provider_profiles")
-              .select("id")
-              .eq("user_id", signInData.user.id)
-              .single();
-
-            if (!providerProfile) {
-              router.push("/onboarding/kyc-capture?role=provider");
-            } else {
-              router.push("/provider/dashboard");
-            }
-          } else {
-            router.push(redirectTarget);
-          }
+          const { data: existingProfile } = await supabase
+            .from("users")
+            .select("role")
+            .eq("id", signInData.user.id)
+            .maybeSingle();
+          const resolved = existingProfile?.role || selectedRole;
+          router.push(resolvePostAuthDestination(resolved, rawRedirect));
           router.refresh();
           return;
         }
@@ -335,11 +315,7 @@ export function LandingAuthCard({
       // If user session is returned immediately (email confirmation disabled in Supabase)
       if (data.session) {
         await refreshUser();
-        if (selectedRole === "provider") {
-          router.push("/onboarding/kyc-capture?role=provider");
-        } else {
-          router.push(redirectTarget);
-        }
+        router.push(resolvePostAuthDestination(selectedRole, rawRedirect));
         router.refresh();
       } else if (data.user) {
         // Confirmation email was dispatched by Supabase

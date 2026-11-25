@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --test tests/unit/subscription-rules.test.ts tests/integration/paystack-webhook.test.ts tests/e2e/customer-discovery.spec.ts",
+    "test": "node --test tests/unit/subscription-rules.test.ts tests/unit/routing-and-locations.test.ts tests/integration/paystack-webhook.test.ts tests/e2e/customer-discovery.spec.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -22,9 +22,13 @@ export interface ProviderListItemDTO {
   id: string;
   userId: string;
   businessName: string;
+  serviceTitle: string;
   serviceCategory: ServiceCategory;
   serviceDescription: string;
+  serviceAreas: string[];
   state: NigeriaState;
+  city: string | null;
+  lga: string | null;
   locationArea: string;
   averageRating: number;
   ratingCount: number;
@@ -38,6 +42,7 @@ export interface ProviderListItemDTO {
 export interface ProviderDetailDTO extends ProviderListItemDTO {
   ratings: Array<{
     id: string;
+    customerId: string;
     customerName: string;
     stars: number;
     comment: string | null;
@@ -55,4 +60,31 @@ export interface SubscriptionStatusDTO {
   isActive: boolean;
   canContact: boolean;
   renewalAmountNgn: number;
+}
+
+export interface PortfolioItemDTO {
+  id: string;
+  providerId: string;
+  title: string;
+  deliveryStory: string;
+  beforeImageUrl: string | null;
+  afterImageUrl: string | null;
+  jobLocation: string | null;
+  completedOn: string | null;
+  duration: string | null;
+  extraDetails: string | null;
+  shareCount: number;
+  likeCount: number;
+  commentCount: number;
+  likedByViewer: boolean;
+  createdAt: string;
+}
+
+export interface PortfolioCommentDTO {
+  id: string;
+  itemId: string;
+  authorId: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
 }

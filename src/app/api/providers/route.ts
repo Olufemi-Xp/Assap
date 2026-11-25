@@ -3,11 +3,15 @@ import { providerService } from "@/services/provider-service";
 import { providerSearchQuerySchema } from "@/lib/validation/provider.schema";
 import type { ApiResponse } from "@/types/api";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     const parsed = providerSearchQuerySchema.safeParse({
       state: searchParams.get("state") || undefined,
+      city: searchParams.get("city") || undefined,
+      lga: searchParams.get("lga") || undefined,
       category: searchParams.get("category") || undefined,
       search: searchParams.get("search") || undefined,
       minRating: searchParams.get("minRating") || undefined,
