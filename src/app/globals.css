@@ -208,3 +208,199 @@ body {
     animation: none;
   }
 }
+
+/* Section 4: Artisan Tools continuous to-and-fro wave motion */
+@keyframes assap-artisan-wave {
+  0% {
+    transform: translate3d(-2.5%, -1%, 0) scale(1.12) rotate(-0.8deg);
+  }
+  25% {
+    transform: translate3d(0.5%, -2.2%, 0) scale(1.14) rotate(0.4deg);
+  }
+  50% {
+    transform: translate3d(2.5%, 1%, 0) scale(1.12) rotate(0.8deg);
+  }
+  75% {
+    transform: translate3d(-0.5%, 2.2%, 0) scale(1.14) rotate(-0.4deg);
+  }
+  100% {
+    transform: translate3d(-2.5%, -1%, 0) scale(1.12) rotate(-0.8deg);
+  }
+}
+
+@keyframes assap-artisan-wave-sheen {
+  0% {
+    transform: translate3d(-30%, 0, 0) skewX(-12deg);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate3d(30%, 0, 0) skewX(12deg);
+    opacity: 0.45;
+  }
+  100% {
+    transform: translate3d(-30%, 0, 0) skewX(-12deg);
+    opacity: 0.25;
+  }
+}
+
+.assap-artisan-wave {
+  animation: assap-artisan-wave 12s ease-in-out infinite;
+  will-change: transform;
+}
+
+.assap-artisan-wave-sheen {
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 50%,
+    rgba(56, 189, 248, 0.22) 0%,
+    rgba(212, 175, 55, 0.12) 45%,
+    transparent 75%
+  );
+  animation: assap-artisan-wave-sheen 9s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* Section 4: Luminous flashing headline */
+@keyframes assap-luminous-flash {
+  0%,
+  100% {
+    opacity: 0.88;
+    text-shadow:
+      0 0 10px rgba(255, 255, 255, 0.45),
+      0 0 24px rgba(56, 189, 248, 0.45);
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 1;
+    text-shadow:
+      0 0 18px rgba(255, 255, 255, 0.95),
+      0 0 38px rgba(56, 189, 248, 0.85),
+      0 0 64px rgba(250, 204, 21, 0.55);
+    filter: brightness(1.18);
+  }
+}
+
+.assap-luminous-flash {
+  animation: assap-luminous-flash 2.2s ease-in-out infinite;
+}
+
+/* Section 4: Red, Blue, Gold, Green multi-flare CTA aura */
+@keyframes assap-flare-spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.06);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.assap-multi-flare-glow {
+  background: conic-gradient(
+    from 0deg,
+    #ef4444 0deg,
+    #3b82f6 90deg,
+    #facc15 180deg,
+    #10b981 270deg,
+    #ef4444 360deg
+  );
+  animation: assap-flare-spin 6s linear infinite;
+  will-change: transform;
+}
+
+.assap-multi-flare-ring {
+  background: conic-gradient(
+    from 90deg,
+    #ef4444 0deg,
+    #3b82f6 90deg,
+    #facc15 180deg,
+    #10b981 270deg,
+    #ef4444 360deg
+  );
+  animation: assap-flare-spin 4.5s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assap-artisan-wave,
+  .assap-artisan-wave-sheen,
+  .assap-luminous-flash,
+  .assap-multi-flare-glow,
+  .assap-multi-flare-ring,
+  .assap-text-beam,
+  .assap-text-beam-impact {
+    animation: none;
+  }
+}
+
+/* Section 4: Continuous to-and-fro multi-color light beam clipped strictly to text glyphs */
+@keyframes assap-text-beam-sweep {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+.assap-text-beam {
+  background-image: linear-gradient(
+    90deg,
+    #0f172a 0%,
+    #0f172a 26%,
+    #ef4444 38%,
+    #3b82f6 46%,
+    #eab308 54%,
+    #10b981 62%,
+    #0f172a 74%,
+    #0f172a 100%
+  );
+  background-size: 280% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: assap-text-beam-sweep 4.2s ease-in-out infinite alternate;
+}
+
+.dark .assap-text-beam {
+  background-image: linear-gradient(
+    90deg,
+    #f8fafc 0%,
+    #f8fafc 26%,
+    #f87171 38%,
+    #60a5fa 46%,
+    #facc15 54%,
+    #34d399 62%,
+    #f8fafc 74%,
+    #f8fafc 100%
+  );
+}
+
+.assap-text-beam-impact {
+  background-image: linear-gradient(
+    90deg,
+    #ef4444 0%,
+    #3b82f6 30%,
+    #eab308 62%,
+    #10b981 85%,
+    #ef4444 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: assap-text-beam-sweep 1.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assap-text-beam {
+    background-image: none;
+    background-clip: border-box;
+    -webkit-background-clip: border-box;
+    color: var(--brand-primary);
+    -webkit-text-fill-color: var(--brand-primary);
+  }
+}

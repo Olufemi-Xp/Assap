@@ -49,19 +49,9 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       onClick={toggleTheme}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-border-subtle bg-surface hover:bg-surface-subtle text-text-primary text-xs font-semibold transition-colors min-h-tap ${className}`}
+      className={`inline-flex items-center justify-center w-11 h-11 rounded-xl border border-border-subtle bg-surface hover:bg-surface-subtle text-text-primary transition-colors min-h-tap min-w-tap ${className}`}
     >
-      {isDark ? (
-        <>
-          <Sun className="w-4 h-4 text-gold" />
-          <span className="hidden sm:inline">Light</span>
-        </>
-      ) : (
-        <>
-          <Moon className="w-4 h-4 text-brand" />
-          <span className="hidden sm:inline">Dark</span>
-        </>
-      )}
+      {isDark ? <Sun className="w-4 h-4 text-gold" /> : <Moon className="w-4 h-4 text-brand" />}
     </button>
   );
 }
