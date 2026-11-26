@@ -3,6 +3,18 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    optimizePackageImports: ["lucide-react", "@supabase/supabase-js", "@supabase/ssr", "date-fns"],
+  },
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      config.output = {
+        ...config.output,
+        chunkLoadTimeout: 300000,
+      };
+    }
+    return config;
+  },
   headers: async () => [
     {
       source: "/:path*",

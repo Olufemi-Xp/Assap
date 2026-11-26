@@ -251,7 +251,7 @@ export function PortfolioGallery({
                     )}
                     {item.afterImageUrl && (
                       <div className="relative rounded-xl overflow-hidden border border-border-subtle bg-surface aspect-[4/3]">
-                        <span className="absolute top-2.5 left-2.5 z-10 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-600/90 text-white">
+                        <span className="absolute top-2.5 left-2.5 z-10 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-accent-primary/90 text-white">
                           After
                         </span>
                         <img
@@ -313,8 +313,8 @@ export function PortfolioGallery({
                   >
                     {copiedItemId === item.id ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
-                        <span className="text-emerald-600">Link copied!</span>
+                        <Check className="w-3.5 h-3.5 text-accent-primary" />
+                        <span className="text-accent-primary">Link copied!</span>
                       </>
                     ) : (
                       <>

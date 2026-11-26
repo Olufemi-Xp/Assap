@@ -3,87 +3,105 @@
 @tailwind utilities;
 
 :root {
-  /* Surfaces & Backgrounds - Light */
-  --bg-canvas: #F8FAFC;
+  /* Premium Teal Blue + Champagne Gold Theme - Light */
+  --bg-canvas: #FAF8F5;
   --bg-surface: #FFFFFF;
-  --bg-surface-subtle: #F1F5F9;
-  --bg-hover: #E2E8F0;
+  --bg-surface-subtle: #E0F2FE;
+  --bg-hover: #F1F5F9;
   --bg-overlay: rgba(15, 23, 42, 0.55);
 
-  /* Typography - Light */
-  --text-primary: #0F172A;
+  /* Brand & Typography - Light */
+  --brand-primary: #0F172A;
+  --text-primary: #1C1917;
   --text-secondary: #475569;
   --text-muted: #64748B;
   --text-inverted: #FFFFFF;
 
-  /* Accents & Brand - Light */
-  --accent-primary: #0F766E;
-  --accent-primary-hover: #115E59;
-  --accent-primary-active: #134E4A;
-  --accent-secondary: #1D4ED8;
+  /* Primary Brand & Interactive Accents */
+  --accent-primary: #0E7490;
+  --accent-primary-hover: #0B5D73;
+  --accent-primary-active: #08495B;
+  --accent-secondary: #0284C7;
+  --accent-cyan: #0891B2;
+  --accent-indigo: #1E3A8A;
+
+  /* Champagne Gold Accents (subtle 3-5% detailing) */
+  --gold-primary: #D4AF37;
+  --gold-brushed: #C5A46D;
+  --gold-pale: #E2C58A;
 
   /* Borders - Light */
   --border-subtle: #E2E8F0;
-  --border-focus: #0F766E;
+  --border-warm: #E7E5E4;
+  --border-focus: #0284C7;
 
   /* Semantic Status - Light */
-  --status-success-bg: #DCFCE7;
-  --status-success-border: #86EFAC;
-  --status-success-text: #15803D;
+  --status-success-bg: #ECFDF5;
+  --status-success-border: #A7F3D0;
+  --status-success-text: #047857;
 
-  --status-warning-bg: #FEF3C7;
-  --status-warning-border: #FCD34D;
-  --status-warning-text: #B45309;
+  --status-warning-bg: #FEF9E7;
+  --status-warning-border: #E2C58A;
+  --status-warning-text: #854D0E;
 
   --status-danger-bg: #FEE2E2;
   --status-danger-border: #FCA5A5;
   --status-danger-text: #B91C1C;
 
-  --status-info-bg: #DBEAFE;
-  --status-info-border: #93C5FD;
-  --status-info-text: #1D4ED8;
+  --status-info-bg: #E0F2FE;
+  --status-info-border: #7DD3FC;
+  --status-info-text: #0284C7;
 }
 
 .dark {
-  /* Surfaces & Backgrounds - Dark */
+  /* Premium Teal Blue + Champagne Gold Theme - Dark */
   --bg-canvas: #090D16;
-  --bg-surface: #111827;
+  --bg-surface: #0F172A;
   --bg-surface-subtle: #1E293B;
   --bg-hover: #273549;
-  --bg-overlay: rgba(2, 6, 23, 0.70);
+  --bg-overlay: rgba(2, 6, 23, 0.72);
 
-  /* Typography - Dark */
-  --text-primary: #F8FAFC;
+  /* Brand & Typography - Dark */
+  --brand-primary: #F8FAFC;
+  --text-primary: #F1F5F9;
   --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --text-inverted: #090D16;
+  --text-muted: #94A3B8;
+  --text-inverted: #FFFFFF;
 
-  /* Accents & Brand - Dark */
-  --accent-primary: #2DD4BF;
-  --accent-primary-hover: #14B8A6;
-  --accent-primary-active: #0D9488;
-  --accent-secondary: #60A5FA;
+  /* Primary Brand & Interactive Accents */
+  --accent-primary: #0E7490;
+  --accent-primary-hover: #0891B2;
+  --accent-primary-active: #0284C7;
+  --accent-secondary: #38BDF8;
+  --accent-cyan: #22D3EE;
+  --accent-indigo: #60A5FA;
+
+  /* Champagne Gold Accents */
+  --gold-primary: #D4AF37;
+  --gold-brushed: #C5A46D;
+  --gold-pale: #E2C58A;
 
   /* Borders - Dark */
   --border-subtle: #1E293B;
-  --border-focus: #2DD4BF;
+  --border-warm: #292524;
+  --border-focus: #38BDF8;
 
   /* Semantic Status - Dark */
-  --status-success-bg: #052E16;
-  --status-success-border: #166534;
-  --status-success-text: #4ADE80;
+  --status-success-bg: #022C22;
+  --status-success-border: #065F46;
+  --status-success-text: #34D399;
 
-  --status-warning-bg: #451A03;
-  --status-warning-border: #92400E;
-  --status-warning-text: #FBBF24;
+  --status-warning-bg: #2E230B;
+  --status-warning-border: #8A6D29;
+  --status-warning-text: #E2C58A;
 
   --status-danger-bg: #450A0A;
   --status-danger-border: #991B1B;
   --status-danger-text: #F87171;
 
-  --status-info-bg: #172554;
-  --status-info-border: #1E40AF;
-  --status-info-text: #93C5FD;
+  --status-info-bg: #0C4A6E;
+  --status-info-border: #0284C7;
+  --status-info-text: #38BDF8;
 }
 
 body {
@@ -97,4 +115,96 @@ body {
 /* Tabular numerals for ratings, currencies, countdowns */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+@keyframes assap-marquee-left {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-assap-marquee {
+  display: flex;
+  width: max-content;
+  animation: assap-marquee-left 60s linear infinite;
+  will-change: transform;
+}
+
+.marquee-wrapper:hover .animate-assap-marquee {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-assap-marquee {
+    animation: none;
+  }
+}
+
+@keyframes assap-gradient-drift {
+  0% {
+    transform: translate3d(-4%, -3%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, 3%, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(-2%, 4%, 0) scale(1.02);
+  }
+}
+
+.assap-section-gradient {
+  background:
+    radial-gradient(60% 70% at 18% 25%, rgba(2, 132, 199, 0.13) 0%, transparent 70%),
+    radial-gradient(55% 65% at 82% 30%, rgba(226, 197, 138, 0.22) 0%, transparent 72%),
+    radial-gradient(65% 75% at 50% 85%, rgba(14, 116, 144, 0.11) 0%, transparent 75%),
+    linear-gradient(135deg, #FAF8F5 0%, #E0F2FE 50%, #FAF8F5 100%);
+  animation: assap-gradient-drift 24s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.dark .assap-section-gradient {
+  background:
+    radial-gradient(60% 70% at 18% 25%, rgba(2, 132, 199, 0.18) 0%, transparent 70%),
+    radial-gradient(55% 65% at 82% 30%, rgba(212, 175, 55, 0.08) 0%, transparent 72%),
+    radial-gradient(65% 75% at 50% 85%, rgba(30, 58, 138, 0.26) 0%, transparent 75%),
+    linear-gradient(135deg, #090D16 0%, #0F172A 50%, #090D16 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assap-section-gradient {
+    animation: none;
+  }
+}
+
+@keyframes assap-card-wave-roll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.assap-card-wave {
+  position: absolute;
+  inset: 0;
+  width: 200%;
+  height: 100%;
+  pointer-events: none;
+  animation: assap-card-wave-roll 18s linear infinite;
+  will-change: transform;
+}
+
+.assap-card-wave--delayed {
+  animation-duration: 24s;
+  animation-delay: -9s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assap-card-wave {
+    animation: none;
+  }
 }

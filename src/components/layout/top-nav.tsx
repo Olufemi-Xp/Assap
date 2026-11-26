@@ -147,7 +147,7 @@ export function TopNav() {
             aria-label="Toggle theme"
             className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-subtle transition-colors min-h-tap min-w-tap flex items-center justify-center"
           >
-            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
+            {isDark ? <Sun className="w-4 h-4 text-gold" /> : <Moon className="w-4 h-4" />}
           </button>
         </nav>
       </div>

@@ -129,7 +129,7 @@ export default function ExplorePage() {
               Trade Directory
             </h1>
             <p className="text-xs sm:text-sm text-text-secondary mt-1">
-              Live directory of registered service providers on ASAP. Filter by State, Local Government, City, or
+              Live directory of registered service providers on ASSAP. Filter by State, Local Government, City, or
               search by service title and tasks.
             </p>
           </div>

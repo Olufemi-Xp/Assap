@@ -167,7 +167,7 @@ export function OtpAuthForm({ mode, defaultRole = "customer" }: OtpAuthFormProps
     <Card className="max-w-[440px] w-full mx-auto p-6 sm:p-8 space-y-6">
       <div>
         <h2 className="text-xl font-heading font-bold text-text-primary">
-          {mode === "signup" ? "Create your account" : "Sign in to ASAP"}
+          {mode === "signup" ? "Create your account" : "Sign in to ASSAP"}
         </h2>
         <p className="text-xs text-text-secondary mt-1">
           {step === "email"

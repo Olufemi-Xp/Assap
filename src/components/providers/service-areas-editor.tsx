@@ -167,7 +167,7 @@ export function ServiceAreasEditor({
       {suggestions.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-[11px] font-medium text-text-muted flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-500" />
+            <Sparkles className="w-3 h-3 text-gold" />
             <span>Quick-add suggestions:</span>
           </p>
           <div className="flex flex-wrap gap-1.5">

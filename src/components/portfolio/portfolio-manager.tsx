@@ -207,7 +207,7 @@ export function PortfolioManager({ initialItems, canManage }: PortfolioManagerPr
 
               <label className="block rounded-xl border border-dashed border-border-subtle hover:border-accent-primary p-4 text-center cursor-pointer bg-surface-subtle/40 transition-colors space-y-2">
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-primary">
-                  <ImagePlus className="w-4 h-4 text-emerald-600" /> After Photo
+                  <ImagePlus className="w-4 h-4 text-accent-secondary" /> After Photo
                 </span>
                 {afterPreview ? (
                   <img

@@ -232,7 +232,7 @@ export function AppSidebar() {
                 }`}
               >
                 {isDark ? (
-                  <Sun className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <Sun className="w-4 h-4 text-gold flex-shrink-0" />
                 ) : (
                   <Moon className="w-4 h-4 flex-shrink-0" />
                 )}

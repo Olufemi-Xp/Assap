@@ -96,7 +96,7 @@ export default function AdminModerationPage() {
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-heading font-bold text-text-primary flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-emerald-600" /> Paystack Subscription Transactions
+              <CreditCard className="w-4 h-4 text-accent-primary" /> Paystack Subscription Transactions
             </h2>
             <span className="text-xs text-text-muted">₦1,000 / month renewals</span>
           </div>
@@ -109,7 +109,7 @@ export default function AdminModerationPage() {
                   <p className="text-[11px] text-text-muted font-mono">{p.ref}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-emerald-600 tabular-nums">{p.amount}</p>
+                  <p className="font-bold text-accent-primary tabular-nums">{p.amount}</p>
                   <Badge variant="success">Verified Webhook</Badge>
                 </div>
               </div>

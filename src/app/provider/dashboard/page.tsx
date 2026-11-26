@@ -97,9 +97,9 @@ export default async function ProviderDashboardPage({
 
         {/* Trial Started Confirmation Banner */}
         {trial === "started" && (
-          <Card className="p-4 border-emerald-500/40 bg-emerald-500/10 flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-            <p className="text-xs sm:text-sm font-medium text-text-primary">
+          <Card className="p-4 border-status-success-border bg-status-success-bg/60 flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-status-success-text flex-shrink-0" />
+            <p className="text-xs sm:text-sm font-medium text-brand">
               You have successfully completed your profile setup as a service provider. Your 30-day free trial is now
               active!
             </p>
@@ -108,10 +108,10 @@ export default async function ProviderDashboardPage({
 
         {/* Incomplete KYC / Listing Setup Prompt */}
         {!providerProfile && (
-          <Card className="p-5 sm:p-6 border-amber-500/40 bg-amber-500/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <Card className="p-5 sm:p-6 border-gold-brushed/50 bg-gold-pale/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
-                <ShieldAlert className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-gold-pale/40 text-brand flex items-center justify-center flex-shrink-0">
+                <ShieldAlert className="w-5 h-5 text-gold" />
               </div>
               <div>
                 <h2 className="font-heading font-bold text-sm text-text-primary">
@@ -155,8 +155,8 @@ export default async function ProviderDashboardPage({
           </Card>
 
           <Card className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
-              <Star className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-gold-pale/25 text-gold flex items-center justify-center">
+              <Star className="w-5 h-5 fill-gold" />
             </div>
             <div>
               <p className="text-xs text-text-muted">Star Rating</p>
@@ -169,7 +169,7 @@ export default async function ProviderDashboardPage({
           </Card>
 
           <Card className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-indigo-brand/10 text-indigo-brand flex items-center justify-center">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>

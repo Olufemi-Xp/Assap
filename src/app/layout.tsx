@@ -4,8 +4,8 @@ import { PwaRegister } from "@/components/layout/pwa-register";
 import { AuthProvider } from "@/components/auth/auth-provider";
 
 export const metadata: Metadata = {
-  title: "ASAP - Any Service Swift Access Platform | Nigeria",
-  description: "Any Service Swift Access Platform (ASAP) connects you directly with verified plumbers, electricians, cleaners, and artisans across all 36 states of Nigeria. Fast, direct contact via Phone or WhatsApp.",
+  title: "ASSAP - Any Service Swift Access Platform | Nigeria",
+  description: "Any Service Swift Access Platform (ASSAP) connects you directly with verified plumbers, electricians, cleaners, and artisans across all 36 states of Nigeria. Fast, direct contact via Phone or WhatsApp.",
   manifest: "/manifest.json",
   icons: {
     icon: "/icons/icon-192.svg",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0F766E",
+  themeColor: "#0E7490",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

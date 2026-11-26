@@ -14,7 +14,7 @@ export function AppShell({ children }: AppShellProps) {
           {children}
         </main>
         <footer className="border-t border-border-subtle py-5 text-center text-xs text-text-muted bg-surface/50">
-          <p>&copy; 2026 ASAP Nigeria. Verified local service providers across 36 states.</p>
+          <p>&copy; 2026 ASSAP Nigeria. Verified local service providers across 36 states.</p>
         </footer>
       </div>
     </div>

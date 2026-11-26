@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { ProviderContactGate } from "./provider-contact-gate";
 import { formatLocation } from "@/lib/constants/nigeria-locations";
 import type { ProviderListItemDTO } from "@/types/domain";
-import { Star, MapPin, ArrowUpRight, Briefcase, CheckCircle2 } from "lucide-react";
+import { Star, MapPin, ArrowUpRight, Briefcase, CheckCircle2, BadgeCheck } from "lucide-react";
 
 export interface ProviderCardProps {
   provider: ProviderListItemDTO;
@@ -23,7 +23,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
 
   return (
     <Card hoverable className="relative overflow-hidden flex flex-col justify-between h-full p-5 space-y-4">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent-primary via-emerald-400 to-amber-400" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent-secondary via-accent-primary to-indigo-brand" />
 
       <div className="space-y-3 pt-1">
         <div className="flex items-start justify-between gap-2">
@@ -35,9 +35,10 @@ export function ProviderCard({ provider }: ProviderCardProps) {
 
             <Link
               href={`/providers/${provider.id}`}
-              className="block font-heading font-bold text-base text-text-primary hover:text-accent-primary transition-colors line-clamp-1"
+              className="flex items-center gap-1.5 font-heading font-bold text-base text-brand hover:text-accent-primary transition-colors"
             >
-              {provider.businessName}
+              <span className="truncate">{provider.businessName}</span>
+              <BadgeCheck className="w-4 h-4 text-verified flex-shrink-0" aria-label="Verified provider" />
             </Link>
 
             <p className="text-[11px] text-text-muted flex items-center gap-1">
@@ -50,7 +51,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
           </div>
 
           <span className="flex items-center gap-1 text-xs font-semibold text-text-primary tabular-nums flex-shrink-0">
-            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+            <Star className="w-3.5 h-3.5 fill-gold text-gold" />
             {provider.averageRating > 0 ? provider.averageRating.toFixed(1) : "New"}
             {provider.ratingCount > 0 && <span className="text-text-muted font-normal">({provider.ratingCount})</span>}
           </span>

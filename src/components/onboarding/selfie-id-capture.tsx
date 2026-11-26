@@ -242,7 +242,7 @@ export function SelfieIdCapture() {
       setCompletedMessage(
         role === "provider"
           ? "You have successfully completed your profile setup as a service provider. Your 30-day free trial is now active!"
-          : "You have successfully completed your ASAP profile setup!"
+          : "You have successfully completed your ASSAP profile setup!"
       );
       router.refresh();
     } catch (err: unknown) {
@@ -255,12 +255,12 @@ export function SelfieIdCapture() {
   if (completedMessage) {
     return (
       <Card className="max-w-[560px] w-full mx-auto p-6 sm:p-8 text-center space-y-5">
-        <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+        <div className="w-14 h-14 rounded-2xl bg-surface-subtle text-accent-primary flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-8 h-8" />
         </div>
         <div className="space-y-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
-            <Sparkles className="w-3.5 h-3.5" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-pale/25 border border-gold-brushed/40 text-brand text-xs font-bold">
+            <Sparkles className="w-3.5 h-3.5 text-gold" />
             <span>Setup Complete</span>
           </span>
           <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-text-primary">
@@ -306,27 +306,27 @@ export function SelfieIdCapture() {
               <span>1. Live Selfie Snapshot</span>
             </label>
             {selfiePreview && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent-secondary">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Captured
               </span>
             )}
           </div>
 
           {selfieError && (
-            <p className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20">
+            <p className="text-[11px] text-brand bg-gold-pale/25 p-2.5 rounded-lg border border-gold-brushed/40">
               {selfieError}
             </p>
           )}
 
           {selfiePreview ? (
             <div className="space-y-3">
-              <div className="relative rounded-xl overflow-hidden border-2 border-emerald-500/50 bg-black aspect-[4/3] max-h-64 mx-auto">
+              <div className="relative rounded-xl overflow-hidden border-2 border-accent-secondary/60 bg-black aspect-[4/3] max-h-64 mx-auto">
                 <img
                   src={selfiePreview}
                   alt="Captured selfie preview"
                   className="w-full h-full object-cover"
                 />
-                <span className="absolute bottom-2 left-2 px-2.5 py-0.5 rounded-full bg-emerald-600/90 text-white text-[10px] font-bold">
+                <span className="absolute bottom-2 left-2 px-2.5 py-0.5 rounded-full bg-accent-primary/90 text-white text-[10px] font-bold">
                   Selfie Preview
                 </span>
               </div>
@@ -403,7 +403,7 @@ export function SelfieIdCapture() {
               <span>2. Valid Government ID Document</span>
             </label>
             {idPreview && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent-secondary">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Attached
               </span>
             )}
@@ -432,20 +432,20 @@ export function SelfieIdCapture() {
           </div>
 
           {idCameraError && (
-            <p className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20">
+            <p className="text-[11px] text-brand bg-gold-pale/25 p-2.5 rounded-lg border border-gold-brushed/40">
               {idCameraError}
             </p>
           )}
 
           {idPreview ? (
             <div className="space-y-3">
-              <div className="relative rounded-xl overflow-hidden border-2 border-emerald-500/50 bg-surface aspect-[16/10] max-h-56 mx-auto">
+              <div className="relative rounded-xl overflow-hidden border-2 border-accent-secondary/60 bg-surface aspect-[16/10] max-h-56 mx-auto">
                 <img
                   src={idPreview}
                   alt="Valid ID preview"
                   className="w-full h-full object-contain bg-slate-950/80"
                 />
-                <span className="absolute bottom-2 left-2 px-2.5 py-0.5 rounded-full bg-emerald-600/90 text-white text-[10px] font-bold">
+                <span className="absolute bottom-2 left-2 px-2.5 py-0.5 rounded-full bg-accent-primary/90 text-white text-[10px] font-bold">
                   {idFileName || "ID Preview"}
                 </span>
               </div>

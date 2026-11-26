@@ -228,14 +228,14 @@ export const portfolioService = {
     const names = new Map<string, string>();
     if (userIds.length > 0) {
       const { data: users } = await db.from("users").select("id, full_name").in("id", userIds);
-      (users || []).forEach((u: { id: string; full_name: string }) => names.set(u.id, toDisplayName(u.full_name, "ASAP member")));
+      (users || []).forEach((u: { id: string; full_name: string }) => names.set(u.id, toDisplayName(u.full_name, "ASSAP member")));
     }
 
     return rows.map((r) => ({
       id: r.id as string,
       itemId: r.item_id as string,
       authorId: r.user_id as string,
-      authorName: names.get(r.user_id as string) || "ASAP member",
+      authorName: names.get(r.user_id as string) || "ASSAP member",
       body: r.body as string,
       createdAt: r.created_at as string,
     }));
@@ -254,7 +254,7 @@ export const portfolioService = {
       id: data.id as string,
       itemId: data.item_id as string,
       authorId: data.user_id as string,
-      authorName: toDisplayName(authorName, "ASAP member"),
+      authorName: toDisplayName(authorName, "ASSAP member"),
       body: data.body as string,
       createdAt: data.created_at as string,
     };

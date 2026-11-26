@@ -1,11 +1,11 @@
 {
-  "name": "ASAP - Local Services Across Nigeria",
-  "short_name": "ASAP",
+  "name": "ASSAP - Local Services Across Nigeria",
+  "short_name": "ASSAP",
   "description": "Find trusted local service providers across all 36 states of Nigeria.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F8FAFC",
-  "theme_color": "#0F766E",
+  "theme_color": "#0E7490",
   "orientation": "portrait-primary",
   "icons": [
     {

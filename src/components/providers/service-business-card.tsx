@@ -40,8 +40,8 @@ export function ServiceBusinessCard({
         compact ? "p-4 space-y-3" : "p-5 sm:p-6 space-y-4"
       }`}
     >
-      {/* Top Emerald Accent Strip */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent-primary via-emerald-400 to-amber-400" />
+      {/* Top Teal-Blue-to-Indigo Accent Strip */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent-secondary via-accent-primary to-indigo-brand" />
 
       {/* Business Header */}
       <div className="flex items-start justify-between gap-3 pt-1">
@@ -50,9 +50,9 @@ export function ServiceBusinessCard({
             <Briefcase className="w-3 h-3" />
             <span>{serviceTitle || "Service Provider"}</span>
           </div>
-          <h3 className="font-heading font-extrabold text-base sm:text-lg text-text-primary truncate flex items-center gap-1.5">
+          <h3 className="font-heading font-extrabold text-base sm:text-lg text-brand truncate flex items-center gap-1.5">
             <span className="truncate">{businessName || "Your Business Name"}</span>
-            <BadgeCheck className="w-4 h-4 text-accent-primary flex-shrink-0" />
+            <BadgeCheck className="w-4 h-4 text-verified flex-shrink-0" aria-label="Verified provider" />
           </h3>
           {(locationArea || locationLabel) && (
             <p className="text-[11px] text-text-muted flex items-center gap-1">
@@ -67,7 +67,7 @@ export function ServiceBusinessCard({
 
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-text-primary tabular-nums">
-            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+            <Star className="w-3.5 h-3.5 fill-gold text-gold" />
             {averageRating > 0 ? averageRating.toFixed(1) : "New"}
             {ratingCount > 0 && <span className="text-text-muted font-normal">({ratingCount})</span>}
           </span>
@@ -89,7 +89,7 @@ export function ServiceBusinessCard({
             {serviceAreas.map((area, idx) => (
               <li
                 key={`${area}-${idx}`}
-                className="flex items-start gap-1.5 text-xs text-text-secondary bg-surface-subtle/50 px-2.5 py-1.5 rounded-lg border border-border-subtle/70"
+                className="flex items-start gap-1.5 text-xs text-text-primary bg-canvas px-2.5 py-1.5 rounded-lg border border-border-warm"
               >
                 <CheckCircle2 className="w-3.5 h-3.5 text-accent-primary flex-shrink-0 mt-0.5" />
                 <span className="leading-snug">{area}</span>

@@ -83,7 +83,7 @@ export function ProviderReviews({
       const nextAvg = nextList.reduce((acc, r) => acc + r.stars, 0) / nextCount;
       setCount(nextCount);
       setAverage(Number(nextAvg.toFixed(2)));
-      setSuccess("Your review has been saved. Thank you for helping the ASAP community!");
+      setSuccess("Your review has been saved. Thank you for helping the ASSAP community!");
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -105,8 +105,8 @@ export function ProviderReviews({
           </p>
         </div>
         {average > 0 && (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold tabular-nums">
-            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-pale/25 border border-gold-brushed/40 text-brand text-xs font-bold tabular-nums">
+            <Star className="w-3.5 h-3.5 fill-gold text-gold" />
             {average.toFixed(2)}
           </span>
         )}
@@ -138,7 +138,7 @@ export function ProviderReviews({
                   <Star
                     className={`w-6 h-6 transition-colors ${
                       value <= activeStarDisplay
-                        ? "fill-amber-400 text-amber-400"
+                        ? "fill-gold text-gold"
                         : "text-text-muted/40"
                     }`}
                   />
@@ -203,7 +203,7 @@ export function ProviderReviews({
                 <span className="font-semibold text-text-primary">{r.customerName}</span>
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-0.5 text-text-primary font-semibold tabular-nums">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" /> {r.stars}
+                    <Star className="w-3.5 h-3.5 fill-gold text-gold" /> {r.stars}
                   </span>
                   <span className="text-[10px] text-text-muted">
                     {new Date(r.createdAt).toLocaleDateString()}

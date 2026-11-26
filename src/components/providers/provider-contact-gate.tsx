@@ -26,7 +26,7 @@ export function ProviderContactGate({
   const cleanPhone = phoneNumber ? phoneNumber.replace(/\s+/g, "") : "";
   const cleanWhatsapp = whatsappNumber ? whatsappNumber.replace(/[^\d]/g, "") : "";
   const whatsappUrl = `https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent(
-    `Hello ${businessName}, I found your listing on ASAP Nigeria and would like to ask about your services.`
+    `Hello ${businessName}, I found your listing on ASSAP Nigeria and would like to ask about your services.`
   )}`;
 
   return (
@@ -40,7 +40,7 @@ export function ProviderContactGate({
       )}
       {whatsappNumber && (
         <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="w-full">
-          <Button variant="primary" size="sm" className="w-full gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700">
+          <Button variant="primary" size="sm" className="w-full gap-1.5 text-xs">
             <MessageSquare className="w-3.5 h-3.5" /> WhatsApp
           </Button>
         </a>

@@ -23,21 +23,21 @@ export function AsapEmblem({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`flex-shrink-0 transition-transform duration-200 group-hover:scale-105 ${className}`}
-      aria-label="ASAP Logo Emblem"
+      aria-label="ASSAP Logo Emblem"
     >
       <defs>
-        {/* Main Brand Emerald Gradient */}
+        {/* Main Brand Indigo-to-Teal-Blue Gradient */}
         <linearGradient id="asap-teal-grad" x1="6" y1="42" x2="42" y2="6" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#044E46" />
-          <stop offset="45%" stopColor="#0F766E" />
-          <stop offset="100%" stopColor="#14B8A6" />
+          <stop offset="0%" stopColor="#1E3A8A" />
+          <stop offset="50%" stopColor="#0E7490" />
+          <stop offset="100%" stopColor="#0284C7" />
         </linearGradient>
 
-        {/* Swift Bolt Energy Gradient */}
+        {/* Champagne Gold Bolt Accent Gradient */}
         <linearGradient id="asap-bolt-grad" x1="18" y1="14" x2="32" y2="36" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FBBF24" />
-          <stop offset="60%" stopColor="#F59E0B" />
-          <stop offset="100%" stopColor="#D97706" />
+          <stop offset="0%" stopColor="#E2C58A" />
+          <stop offset="55%" stopColor="#D4AF37" />
+          <stop offset="100%" stopColor="#C5A46D" />
         </linearGradient>
 
         {/* Subtle Highlight Reflection */}
@@ -48,7 +48,7 @@ export function AsapEmblem({
 
         {/* Soft Drop Shadow Filter */}
         <filter id="asap-shadow" x="0" y="2" width="48" height="46" filterUnits="userSpaceOnUse">
-          <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#044E46" floodOpacity="0.25" />
+          <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#0F172A" floodOpacity="0.25" />
         </filter>
       </defs>
 
@@ -60,7 +60,7 @@ export function AsapEmblem({
         height="43"
         rx="11"
         fill="url(#asap-teal-grad)"
-        stroke="#14B8A6"
+        stroke="#0284C7"
         strokeOpacity="0.35"
         strokeWidth="1.2"
         filter="url(#asap-shadow)"
@@ -130,10 +130,10 @@ export function AsapLogo({
         <AsapEmblem size={markSize * 1.3} />
         <div>
           <div className="flex items-center justify-center gap-2">
-            <span className="font-heading font-black tracking-tight text-3xl sm:text-4xl text-text-primary">
-              ASAP
+            <span className="font-heading font-black tracking-tight text-3xl sm:text-4xl text-brand">
+              ASSAP
             </span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-verified/10 text-verified border border-verified/25">
               Nigeria
             </span>
           </div>
@@ -158,7 +158,7 @@ export function AsapLogo({
       <div className="flex flex-col">
         <div className="flex items-center gap-2">
           <span
-            className={`font-heading font-black tracking-tight text-text-primary ${
+            className={`font-heading font-black tracking-tight text-brand ${
               size === "sm"
                 ? "text-lg"
                 : size === "md"
@@ -168,9 +168,9 @@ export function AsapLogo({
                 : "text-3xl sm:text-4xl"
             }`}
           >
-            ASAP
+            ASSAP
           </span>
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-verified/10 text-verified border border-verified/25">
             NG
           </span>
         </div>

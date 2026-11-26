@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
   <defs>
     <linearGradient id="asap-teal-grad-512" x1="64" y1="448" x2="448" y2="64" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stopColor="#044E46" />
-      <stop offset="45%" stopColor="#0F766E" />
-      <stop offset="100%" stopColor="#14B8A6" />
+      <stop offset="0%" stopColor="#1E3A8A" />
+      <stop offset="50%" stopColor="#0E7490" />
+      <stop offset="100%" stopColor="#0284C7" />
     </linearGradient>
     <linearGradient id="asap-bolt-grad-512" x1="192" y1="149" x2="341" y2="384" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stopColor="#FBBF24" />
-      <stop offset="60%" stopColor="#F59E0B" />
-      <stop offset="100%" stopColor="#D97706" />
+      <stop offset="0%" stopColor="#E2C58A" />
+      <stop offset="60%" stopColor="#D4AF37" />
+      <stop offset="100%" stopColor="#C5A46D" />
     </linearGradient>
     <linearGradient id="asap-highlight-512" x1="128" y1="85" x2="384" y2="85" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.35" />
@@ -16,7 +16,7 @@
     </linearGradient>
   </defs>
 
-  <rect x="27" y="27" width="458" height="458" rx="117" fill="url(#asap-teal-grad-512)" stroke="#14B8A6" stroke-opacity="0.4" stroke-width="12.8"/>
+  <rect x="27" y="27" width="458" height="458" rx="117" fill="url(#asap-teal-grad-512)" stroke="#0284C7" stroke-opacity="0.4" stroke-width="12.8"/>
 
   <!-- Left Ascension Wing of A -->
   <path d="M133 379L237 136C243 121 258 112 274 112C290 112 305 121 311 136L415 379C420 391 411 405 397 405H353C342 405 333 399 328 389L305 331H207L183 389C179 399 170 405 159 405H115C101 405 92 391 97 379H133Z" fill="#FFFFFF" fill-opacity="0.95"/>

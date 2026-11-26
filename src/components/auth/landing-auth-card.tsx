@@ -336,8 +336,8 @@ export function LandingAuthCard({
     <div
       className={`w-full max-w-[460px] bg-surface rounded-2xl border border-border-subtle shadow-xl shadow-accent-primary/5 p-6 sm:p-7 relative overflow-hidden backdrop-blur-sm ${className}`}
     >
-      {/* Top subtle emerald brand accent gradient glow */}
-      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-accent-primary via-emerald-400 to-amber-400" />
+      {/* Top Indigo-to-Teal-Blue brand accent gradient */}
+      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-accent-secondary via-accent-primary to-indigo-brand" />
 
       {/* Card Header with Emblem and Brand Name */}
       <div className="flex items-center justify-between pb-5 border-b border-border-subtle">
@@ -345,7 +345,7 @@ export function LandingAuthCard({
           <AsapEmblem size={32} />
           <div>
             <h3 className="font-heading font-black text-lg text-text-primary tracking-tight leading-none">
-              ASAP Gateway
+              ASSAP Gateway
             </h3>
             <p className="text-[11px] text-text-muted mt-0.5">
               Swift access to verified Nigerian services
@@ -438,7 +438,7 @@ export function LandingAuthCard({
 
               <div className="p-3 rounded-xl bg-surface border border-border-subtle text-[11px] text-text-secondary text-left space-y-1.5">
                 <p className="font-semibold text-text-primary flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                  <AlertCircle className="w-3.5 h-3.5 text-gold flex-shrink-0" />
                   <span>Didn't receive the email?</span>
                 </p>
                 <ul className="list-disc list-inside space-y-1 text-text-muted text-[10.5px]">
@@ -544,8 +544,8 @@ export function LandingAuthCard({
                   </button>
                 </div>
                 {selectedRole === "provider" && (
-                  <div className="mt-2 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-700 dark:text-amber-300 font-medium">
-                    <Sparkles className="w-3 h-3 text-amber-500 flex-shrink-0" />
+                  <div className="mt-2 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gold-pale/25 border border-gold-brushed/40 text-[10px] text-brand font-medium">
+                    <Sparkles className="w-3 h-3 text-gold flex-shrink-0" />
                     <span>Includes 1st Month Free Trial (zero upfront fee).</span>
                   </div>
                 )}
@@ -719,7 +719,7 @@ export function LandingAuthCard({
               </form>
 
               <p className="text-[10px] text-text-muted text-center leading-relaxed pt-1">
-                By signing up, you agree to ASAP's verified local directory terms. 100% free for customers; 30-day free trial for service providers.
+                By signing up, you agree to ASSAP&apos;s verified local directory terms. 100% free for customers; 30-day free trial for service providers.
               </p>
             </>
           )}
@@ -731,7 +731,7 @@ export function LandingAuthCard({
         <div className="mt-5 space-y-4">
           {/* Unconfirmed email banner */}
           {errorMessage && errorMessage.includes("not been confirmed") && (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-200 space-y-2">
+            <div className="p-3 rounded-xl bg-surface-subtle/60 border border-accent-secondary/30 text-xs text-brand space-y-2">
               <p className="leading-relaxed">
                 Need a new verification link sent to <strong>{email || "your email"}</strong>?
               </p>

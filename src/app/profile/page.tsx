@@ -100,7 +100,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex justify-between py-2.5">
               <span className="text-text-muted">Email verification</span>
-              <span className="font-semibold text-emerald-600 flex items-center gap-1">
+              <span className="font-semibold text-verified flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" /> Verified
               </span>
             </div>

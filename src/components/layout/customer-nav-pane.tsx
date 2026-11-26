@@ -140,7 +140,7 @@ export function CustomerNavPane() {
               href="/?welcome=1"
               className="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-subtle transition-colors"
             >
-              <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-amber-500" />
+              <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-gold" />
               <span>Welcome Page</span>
             </Link>
 

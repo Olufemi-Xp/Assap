@@ -17,6 +17,8 @@ const config: Config = {
           hover: "var(--bg-hover)",
         },
         overlay: "var(--bg-overlay)",
+        brand: "var(--brand-primary)",
+        verified: "var(--accent-secondary)",
         text: {
           primary: "var(--text-primary)",
           secondary: "var(--text-secondary)",
@@ -30,9 +32,18 @@ const config: Config = {
             active: "var(--accent-primary-active)",
           },
           secondary: "var(--accent-secondary)",
+          cyan: "var(--accent-cyan)",
+          indigo: "var(--accent-indigo)",
         },
+        gold: {
+          DEFAULT: "var(--gold-primary)",
+          brushed: "var(--gold-brushed)",
+          pale: "var(--gold-pale)",
+        },
+        "indigo-brand": "var(--accent-indigo)",
         border: {
           subtle: "var(--border-subtle)",
+          warm: "var(--border-warm)",
           focus: "var(--border-focus)",
         },
         status: {

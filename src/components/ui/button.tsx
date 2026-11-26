@@ -13,13 +13,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary:
-        "bg-accent-primary text-text-inverted hover:bg-accent-primary-hover active:bg-accent-primary-active focus:ring-accent-primary shadow-sm",
+        "bg-accent-primary text-text-inverted hover:bg-accent-primary-hover active:bg-accent-primary-active focus:ring-accent-secondary shadow-sm",
       secondary:
-        "bg-surface-subtle text-text-primary border border-border-subtle hover:bg-surface-hover active:bg-surface-subtle focus:ring-accent-primary",
+        "bg-surface text-accent-secondary border border-accent-secondary/50 hover:bg-surface-subtle/60 active:bg-surface-subtle focus:ring-accent-secondary",
       outline:
-        "border border-border-subtle bg-transparent text-text-primary hover:bg-surface-subtle active:bg-surface-hover focus:ring-accent-primary",
+        "border border-border-subtle bg-surface text-brand hover:bg-surface-hover active:bg-surface-subtle focus:ring-accent-secondary",
       ghost:
-        "bg-transparent text-text-secondary hover:bg-surface-subtle hover:text-text-primary focus:ring-accent-primary",
+        "bg-transparent text-text-secondary hover:bg-surface-hover hover:text-brand focus:ring-accent-secondary",
       destructive:
         "bg-status-danger-bg text-status-danger-text border border-status-danger-border hover:opacity-90 active:opacity-100 focus:ring-red-500",
     };
