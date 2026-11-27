@@ -513,4 +513,30 @@ body {
   .assap-flip-inner {
     transition: none;
   }
+
+  .assap-card-glow-orbit {
+    animation: none;
+  }
+}
+
+.assap-card-glow-gradient {
+  background: conic-gradient(
+    from 0deg,
+    #3b82f6 0deg,
+    #ef4444 90deg,
+    #14b8a6 180deg,
+    #facc15 270deg,
+    #3b82f6 360deg
+  );
+}
+
+.assap-card-glow-orbit {
+  animation: assap-flare-spin 5.5s linear infinite;
+  will-change: transform;
+}
+
+.assap-card-glow-static {
+  animation: none;
+  transform: rotate(0deg) scale(1.03);
+  filter: brightness(1.15);
 }
