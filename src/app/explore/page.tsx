@@ -1,20 +1,19 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { AppShell } from "@/components/layout/app-shell";
-import { LocationSelector } from "@/components/location/location-selector";
+import { UnifiedLocationBar } from "@/components/location/unified-location-bar";
 import { ProviderCard } from "@/components/providers/provider-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SERVICE_CATEGORIES } from "@/lib/constants/service-categories";
+import { DIRECTORY_SHOWCASE_PROVIDERS } from "@/lib/constants/directory-showcase";
 import {
   EMPTY_LOCATION,
   formatLocation,
-  normalizeLocation,
   type SelectedLocation,
 } from "@/lib/constants/nigeria-locations";
 import { useAuth } from "@/components/auth/auth-provider";
-import { createClient } from "@/lib/supabase/client";
 import type { ProviderListItemDTO } from "@/types/domain";
 import { Search, SlidersHorizontal, Users, AlertCircle, Play } from "lucide-react";
 
@@ -28,37 +27,6 @@ export default function ExplorePage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isSavingLoc, setIsSavingLoc] = useState(false);
   const [savedLocFeedback, setSavedLocFeedback] = useState(false);
-
-  // Load saved customer location once user is available
-  useEffect(() => {
-    if (!user) return;
-    let ignore = false;
-    async function loadSavedLocation() {
-      try {
-        const supabase = createClient();
-        const { data } = await supabase
-          .from("users")
-          .select("state, city, lga")
-          .eq("id", user!.id)
-          .maybeSingle();
-
-        if (!ignore && data?.state) {
-          const norm = normalizeLocation({
-            state: data.state,
-            city: data.city ?? "",
-            lga: data.lga ?? "",
-          });
-          if (norm) setLocation(norm);
-        }
-      } catch {
-        // Ignore if columns aren't migrated yet
-      }
-    }
-    loadSavedLocation();
-    return () => {
-      ignore = true;
-    };
-  }, [user]);
 
   const fetchProviders = useCallback(async () => {
     setIsLoading(true);
@@ -120,6 +88,39 @@ export default function ExplorePage() {
 
   const activeLocationLabel = formatLocation(location);
 
+  const displayedProviders = useMemo(() => {
+    const seenNames = new Set(providers.map((p) => p.businessName.trim().toLowerCase()));
+    const q = search.trim().toLowerCase();
+
+    const matchingShowcase = DIRECTORY_SHOWCASE_PROVIDERS.filter((item) => {
+      if (seenNames.has(item.businessName.trim().toLowerCase())) return false;
+      if (location.state && item.state !== location.state) return false;
+      if (location.city && (item.city || "").toLowerCase() !== location.city.toLowerCase()) return false;
+      if (location.lga && (item.lga || "").toLowerCase() !== location.lga.toLowerCase()) return false;
+      if (selectedCategory && item.serviceCategory !== selectedCategory) return false;
+      if (q) {
+        const haystack = [
+          item.businessName,
+          item.serviceTitle,
+          item.serviceCategory,
+          item.serviceDescription,
+          item.officeAddress || "",
+          item.locationArea,
+          item.city || "",
+          item.lga || "",
+          ...item.serviceAreas,
+        ]
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+
+    const combined = [...providers, ...matchingShowcase];
+    return combined.length > 12 && providers.length === 0 ? combined.slice(0, 12) : combined;
+  }, [providers, location.state, location.city, location.lga, selectedCategory, search]);
+
   return (
     <AppShell>
       <div className="space-y-6">
@@ -129,14 +130,16 @@ export default function ExplorePage() {
               Trade Directory
             </h1>
             <p className="text-xs sm:text-sm text-text-secondary mt-1">
-              Live directory of registered service providers on ASSAP. Filter by State, Local Government, City, or
-              search by service title and tasks.
+              Live directory of registered service providers on ASSAP. Filter by Location or search by service title
+              and tasks.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface border border-border-subtle text-text-secondary text-xs font-semibold tabular-nums">
               <Users className="w-3.5 h-3.5 text-accent-primary" />
-              <span>{providers.length} registered provider{providers.length === 1 ? "" : "s"}</span>
+              <span>
+                {displayedProviders.length} registered provider{displayedProviders.length === 1 ? "" : "s"}
+              </span>
             </span>
             {activeLocationLabel && (
               <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-accent-primary/10 text-accent-primary text-xs font-semibold">
@@ -146,8 +149,8 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        {/* Hierarchical Location Module: State, Local Government & City */}
-        <LocationSelector
+        {/* Unified Location Selector: Location -> 36 States -> Cities -> LGAs */}
+        <UnifiedLocationBar
           value={location}
           onChange={setLocation}
           onSave={handleSaveLocation}
@@ -202,15 +205,15 @@ export default function ExplorePage() {
         {/* Live Registered Providers Grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="h-56 rounded-2xl bg-surface-subtle animate-pulse" />
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <div key={n} className="h-[396px] rounded-2xl bg-surface-subtle animate-pulse" />
             ))}
           </div>
-        ) : providers.length === 0 ? (
+        ) : displayedProviders.length === 0 ? (
           <div className="text-center py-16 border border-border-subtle rounded-2xl bg-surface p-6 space-y-3">
             <p className="text-sm font-semibold text-text-primary">No matching service providers found</p>
             <p className="text-xs text-text-muted">
-              Try clearing your search query or broadening your State / Local Government / City filter.
+              Try clearing your search query or broadening your Location filter.
             </p>
             {(search || location.state || selectedCategory) && (
               <Button
@@ -228,9 +231,9 @@ export default function ExplorePage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {providers.map((p) => (
-              <ProviderCard key={p.id} provider={p} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {displayedProviders.map((p, idx) => (
+              <ProviderCard key={p.id} provider={p} cardIndex={idx} />
             ))}
           </div>
         )}

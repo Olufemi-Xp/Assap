@@ -403,4 +403,114 @@ body {
     color: var(--brand-primary);
     -webkit-text-fill-color: var(--brand-primary);
   }
+
+  .assap-water-ripple {
+    animation: none;
+    opacity: 0.14;
+  }
+}
+
+/* Section 4: Continuous subtle background water ripples */
+@keyframes assap-water-ripple-expand {
+  0% {
+    transform: translate3d(-50%, -50%, 0) scale(0.18);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate3d(-50%, -50%, 0) scale(2.35);
+    opacity: 0;
+  }
+}
+
+.assap-water-ripple-surface {
+  background: radial-gradient(
+    ellipse 55% 48% at 50% 52%,
+    rgba(14, 116, 144, 0.06) 0%,
+    rgba(2, 132, 199, 0.025) 48%,
+    transparent 75%
+  );
+}
+
+.dark .assap-water-ripple-surface {
+  background: radial-gradient(
+    ellipse 55% 48% at 50% 52%,
+    rgba(56, 189, 248, 0.08) 0%,
+    rgba(14, 116, 144, 0.04) 48%,
+    transparent 75%
+  );
+}
+
+.assap-water-ripple {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: min(540px, 85vw);
+  height: min(260px, 42vw);
+  border-radius: 9999px;
+  border: 1.5px solid rgba(14, 116, 144, 0.16);
+  box-shadow:
+    inset 0 0 18px rgba(14, 116, 144, 0.06),
+    0 0 14px rgba(2, 132, 199, 0.06);
+  transform: translate3d(-50%, -50%, 0) scale(0.18);
+  opacity: 0;
+  animation: assap-water-ripple-expand 7.2s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.dark .assap-water-ripple {
+  border-color: rgba(56, 189, 248, 0.18);
+  box-shadow:
+    inset 0 0 22px rgba(56, 189, 248, 0.08),
+    0 0 18px rgba(14, 116, 144, 0.08);
+}
+
+.assap-water-ripple--2 {
+  animation-delay: -1.8s;
+}
+
+.assap-water-ripple--3 {
+  animation-delay: -3.6s;
+}
+
+.assap-water-ripple--4 {
+  animation-delay: -5.4s;
+}
+
+/* Trade Directory 3D Flip Cards */
+.assap-flip-perspective {
+  perspective: 1200px;
+}
+
+.assap-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.72s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.assap-flip-inner--flipped {
+  transform: rotateY(180deg);
+}
+
+.assap-flip-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.assap-flip-face--back {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assap-flip-inner {
+    transition: none;
+  }
 }

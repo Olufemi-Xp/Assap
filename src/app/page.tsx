@@ -204,7 +204,15 @@ export default function LandingPage() {
           id="integrity"
           className="relative w-full py-10 sm:py-12 border-b border-border-subtle bg-canvas text-text-primary overflow-hidden"
         >
-          <div className="max-w-[1040px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Continuous subtle water ripple background */}
+          <div aria-hidden="true" className="assap-water-ripple-surface pointer-events-none absolute inset-0 z-0 overflow-hidden">
+            <span className="assap-water-ripple" />
+            <span className="assap-water-ripple assap-water-ripple--2" />
+            <span className="assap-water-ripple assap-water-ripple--3" />
+            <span className="assap-water-ripple assap-water-ripple--4" />
+          </div>
+
+          <div className="relative z-10 max-w-[1040px] mx-auto px-4 sm:px-6 lg:px-8">
             <PlatformIntegrityPrinciples />
           </div>
         </section>

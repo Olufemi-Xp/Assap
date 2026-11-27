@@ -32,6 +32,8 @@ export interface ProviderListItemDTO {
   locationArea: string;
   averageRating: number;
   ratingCount: number;
+  imageUrl?: string;
+  officeAddress?: string;
   // Contact gating fields (strictly sanitized)
   canContact: boolean;
   phoneNumber?: string;
