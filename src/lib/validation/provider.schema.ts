@@ -19,6 +19,7 @@ export const providerBusinessCardSchema = z.object({
     .min(1, "Add at least one service area or task you handle")
     .max(25, "Maximum 25 service areas"),
   serviceDescription: z.string().trim().max(1000).optional().default(""),
+  imageUrl: z.string().trim().max(1000).optional().nullable(),
   state: z.enum(NIGERIA_STATE_VALUES as [string, ...string[]]),
   city: z.string().trim().max(120).optional().nullable(),
   lga: z.string().trim().max(120).optional().nullable(),

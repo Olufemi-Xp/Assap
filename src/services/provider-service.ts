@@ -84,9 +84,22 @@ function parseServiceAreas(raw: unknown, fallbackDescription?: string): string[]
 
 function parseTitleFallback(rawTitle: string | null | undefined, description: string, category: string): string {
   if (rawTitle && rawTitle.trim()) return rawTitle.trim();
-  const match = description.match(/^\[([^\]]+)\]/);
+  const cleanDesc = description.replace(/\[IMG:[^\]]+\]\s*/g, "");
+  const match = cleanDesc.match(/^\[([^\]]+)\]/);
   if (match && match[1].trim()) return match[1].trim();
   return CATEGORY_TITLE_MAP[category] || "Service Provider";
+}
+
+function extractImageUrl(description: string): string | undefined {
+  const match = description.match(/\[IMG:([^\]]+)\]/);
+  return match && match[1].trim() ? match[1].trim() : undefined;
+}
+
+function stripEncodedTags(description: string): string {
+  return description
+    .replace(/\[IMG:[^\]]+\]\s*/g, "")
+    .replace(/^\[[^\]]+\]\s*/, "")
+    .trim();
 }
 
 function norm(v: string | null | undefined): string {
@@ -167,20 +180,24 @@ function mapProviderRow(row: ProviderRow): ProviderListItemDTO {
       : null
   );
 
+  const cleanDescription = stripEncodedTags(row.service_description);
+  const imageUrl = extractImageUrl(row.service_description);
+
   return {
     id: row.id,
     userId: row.user_id,
     businessName: row.business_name,
     serviceTitle: parseTitleFallback(row.service_title, row.service_description, row.service_category),
     serviceCategory: row.service_category as ProviderListItemDTO["serviceCategory"],
-    serviceDescription: row.service_description.replace(/^\[[^\]]+\]\s*/, ""),
-    serviceAreas: parseServiceAreas(row.service_areas, row.service_description),
+    serviceDescription: cleanDescription,
+    serviceAreas: parseServiceAreas(row.service_areas, cleanDescription),
     state: row.state as ProviderListItemDTO["state"],
     city: row.city ?? null,
     lga: row.lga ?? null,
     locationArea: row.location_area,
     averageRating: Number(row.average_rating),
     ratingCount: row.rating_count,
+    imageUrl,
     canContact: sanitized.canContact,
     phoneNumber: sanitized.phoneNumber,
     whatsappNumber: sanitized.whatsappNumber,
@@ -438,9 +455,11 @@ export const providerService = {
       await db.from("users").upsert(userPayloadBase);
     }
 
-    const summaryDescription = input.serviceDescription?.trim() || input.serviceAreas.join(" | ");
-    const encodedFallbackDescription = `[${input.serviceTitle}] ${input.serviceAreas.join(" | ")}${
-      input.serviceDescription?.trim() ? ` — ${input.serviceDescription.trim()}` : ""
+    const cleanBio = (input.serviceDescription || "").replace(/\[IMG:[^\]]+\]\s*/g, "").trim();
+    const imgPrefix = input.imageUrl?.trim() ? `[IMG:${input.imageUrl.trim()}] ` : "";
+    const summaryDescription = `${imgPrefix}${cleanBio || input.serviceAreas.join(" | ")}`.slice(0, 1000);
+    const encodedFallbackDescription = `${imgPrefix}[${input.serviceTitle}] ${input.serviceAreas.join(" | ")}${
+      cleanBio ? ` — ${cleanBio}` : ""
     }`;
 
     const fullPayload = {

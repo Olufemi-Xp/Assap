@@ -11,7 +11,10 @@ import { ServiceBusinessCard } from "@/components/providers/service-business-car
 import { SERVICE_CATEGORIES } from "@/lib/constants/service-categories";
 import { normalizeLocation, type SelectedLocation } from "@/lib/constants/nigeria-locations";
 import type { ProviderDetailDTO } from "@/types/domain";
-import { Briefcase, Save, CheckCircle2, AlertCircle, Eye, Pencil, X } from "lucide-react";
+import { Briefcase, Save, CheckCircle2, AlertCircle, Eye, Pencil, X, ImagePlus, Trash2 } from "lucide-react";
+
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export interface BusinessCardEditorProps {
   initialProvider: ProviderDetailDTO | null;
@@ -45,11 +48,45 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
   const [locationArea, setLocationArea] = useState(initialProvider?.locationArea || "");
   const [phoneNumber, setPhoneNumber] = useState(initialProvider?.phoneNumber || "");
   const [whatsappNumber, setWhatsappNumber] = useState(initialProvider?.whatsappNumber || "");
+  const [imageUrl, setImageUrl] = useState<string | null>(initialProvider?.imageUrl || null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [isEditing, setIsEditing] = useState(!initialProvider);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const handleImageUpload = async (file: File | null) => {
+    if (!file) return;
+    setError(null);
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      setError("Public business card image must be a JPG, PNG, or WebP file.");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setError("Public business card image must be 5 MB or smaller.");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("/api/provider/business-card/image", {
+        method: "POST",
+        body: formData,
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok || !json.data?.url) {
+        throw new Error(json.error?.message || "Could not upload business card image");
+      }
+      setImageUrl(json.data.url as string);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +109,7 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
           serviceCategory,
           serviceAreas,
           serviceDescription,
+          imageUrl,
           state: location.state || "lagos",
           city: location.city || null,
           lga: location.lga || null,
@@ -92,6 +130,7 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
         setServiceTitle(saved.serviceTitle);
         setServiceAreas(saved.serviceAreas);
         setLocationArea(saved.locationArea);
+        setImageUrl(saved.imageUrl || null);
         if (saved.phoneNumber) setPhoneNumber(saved.phoneNumber);
         if (saved.whatsappNumber) setWhatsappNumber(saved.whatsappNumber);
       }
@@ -171,6 +210,7 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
           locationArea={locationArea}
           averageRating={initialProvider?.averageRating || 0}
           ratingCount={initialProvider?.ratingCount || 0}
+          imageUrl={imageUrl}
         />
       </div>
 
@@ -258,7 +298,77 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
             onChange={(e) => setServiceDescription(e.target.value)}
           />
 
-          <Button type="submit" isLoading={isSaving} className="gap-2">
+          {/* Public Business Card Image Upload */}
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-text-primary">
+              Public Business Card Image
+            </label>
+            <p className="text-[11px] text-text-muted">
+              Upload the image customers see on the front of your Service Business Card in the Trade Directory (JPG, PNG, or WebP, max 5 MB).
+            </p>
+            <div className="rounded-xl border border-dashed border-border-subtle bg-surface-subtle/40 p-4 space-y-3">
+              {imageUrl ? (
+                <div className="space-y-3">
+                  <div className="relative w-full h-44 rounded-lg overflow-hidden border border-border-subtle bg-slate-900">
+                    <img
+                      src={imageUrl}
+                      alt="Public business card preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle bg-surface text-xs font-semibold text-text-primary hover:border-accent-primary cursor-pointer transition-colors">
+                      <ImagePlus className="w-3.5 h-3.5 text-accent-primary" />
+                      <span>{isUploadingImage ? "Uploading..." : "Replace Image"}</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        disabled={isUploadingImage}
+                        onChange={(e) => {
+                          handleImageUpload(e.target.files?.[0] || null);
+                          e.target.value = "";
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setImageUrl(null)}
+                      disabled={isUploadingImage}
+                      className="gap-1.5 text-red-600 dark:text-red-400"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Remove</span>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center py-4 cursor-pointer text-center space-y-1.5">
+                  <ImagePlus className="w-6 h-6 text-accent-primary" />
+                  <span className="text-xs font-semibold text-text-primary">
+                    {isUploadingImage ? "Uploading image..." : "Click to upload Public Business Card Image"}
+                  </span>
+                  <span className="text-[11px] text-text-muted">
+                    JPG, PNG, or WebP up to 5 MB (optional fallback used if empty)
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={isUploadingImage}
+                    onChange={(e) => {
+                      handleImageUpload(e.target.files?.[0] || null);
+                      e.target.value = "";
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </div>
+
+          <Button type="submit" isLoading={isSaving || isUploadingImage} className="gap-2">
             <Save className="w-4 h-4" />
             <span>Save and Publish</span>
           </Button>

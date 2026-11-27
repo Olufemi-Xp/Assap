@@ -63,6 +63,10 @@ export default function ExplorePage() {
 
     const liveWithUniqueImages = providers.map((p) => {
       seenNames.add(p.businessName.trim().toLowerCase());
+      if (p.imageUrl) {
+        usedImages.add(p.imageUrl);
+        return p;
+      }
       const preferred = resolveProviderImage(p);
       let chosen = preferred;
       if (usedImages.has(chosen)) {

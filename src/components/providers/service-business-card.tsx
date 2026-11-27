@@ -15,6 +15,7 @@ export interface ServiceBusinessCardProps {
   locationArea?: string | null;
   averageRating?: number;
   ratingCount?: number;
+  imageUrl?: string | null;
   compact?: boolean;
 }
 
@@ -30,6 +31,7 @@ export function ServiceBusinessCard({
   locationArea,
   averageRating = 0,
   ratingCount = 0,
+  imageUrl,
   compact = false,
 }: ServiceBusinessCardProps) {
   const locationLabel = formatLocation({ state, city, lga });
@@ -42,6 +44,16 @@ export function ServiceBusinessCard({
     >
       {/* Top Teal-Blue-to-Indigo Accent Strip */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent-secondary via-accent-primary to-indigo-brand" />
+
+      {imageUrl && (
+        <div className="relative w-full h-40 sm:h-48 rounded-xl overflow-hidden border border-border-subtle bg-slate-900 mt-1">
+          <img
+            src={imageUrl}
+            alt={serviceTitle || businessName || "Public business card image"}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
 
       {/* Business Header */}
       <div className="flex items-start justify-between gap-3 pt-1">
