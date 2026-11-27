@@ -7,7 +7,6 @@ import { ProviderCard } from "@/components/providers/provider-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  ALL_DIRECTORY_IMAGES,
   DIRECTORY_SHOWCASE_PROVIDERS,
   resolveProviderImage,
 } from "@/lib/constants/directory-showcase";
@@ -61,20 +60,12 @@ export default function ExplorePage() {
     const seenNames = new Set<string>();
     const usedImages = new Set<string>();
 
-    const liveWithUniqueImages = providers.map((p) => {
+    const liveWithResolvedImages = providers.map((p) => {
       seenNames.add(p.businessName.trim().toLowerCase());
-      if (p.imageUrl) {
-        usedImages.add(p.imageUrl);
-        return p;
-      }
-      const preferred = resolveProviderImage(p);
-      let chosen = preferred;
-      if (usedImages.has(chosen)) {
-        const nextFree = ALL_DIRECTORY_IMAGES.find((img) => !usedImages.has(img));
-        if (nextFree) chosen = nextFree;
-      }
-      usedImages.add(chosen);
-      return { ...p, imageUrl: chosen };
+      // Always honor a provider's own uploaded image; otherwise match strictly by their trade category
+      const resolved = p.imageUrl || resolveProviderImage(p);
+      usedImages.add(resolved);
+      return { ...p, imageUrl: resolved };
     });
 
     const q = search.trim().toLowerCase();
@@ -105,7 +96,7 @@ export default function ExplorePage() {
       return true;
     });
 
-    return [...liveWithUniqueImages, ...matchingShowcase].slice(0, 15);
+    return [...liveWithResolvedImages, ...matchingShowcase].slice(0, 15);
   }, [providers, location.state, location.city, location.lga, search]);
 
   return (

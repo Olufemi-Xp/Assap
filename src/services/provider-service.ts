@@ -457,7 +457,8 @@ export const providerService = {
 
     const cleanBio = (input.serviceDescription || "").replace(/\[IMG:[^\]]+\]\s*/g, "").trim();
     const imgPrefix = input.imageUrl?.trim() ? `[IMG:${input.imageUrl.trim()}] ` : "";
-    const summaryDescription = `${imgPrefix}${cleanBio || input.serviceAreas.join(" | ")}`.slice(0, 1000);
+    const bioBody = (cleanBio || input.serviceAreas.join(" | ")).slice(0, 850);
+    const summaryDescription = `${imgPrefix}${bioBody}`;
     const encodedFallbackDescription = `${imgPrefix}[${input.serviceTitle}] ${input.serviceAreas.join(" | ")}${
       cleanBio ? ` — ${cleanBio}` : ""
     }`;
@@ -539,6 +540,7 @@ export const providerService = {
       ...mapped,
       serviceTitle: input.serviceTitle,
       serviceAreas: input.serviceAreas,
+      imageUrl: mapped.imageUrl || input.imageUrl?.trim() || undefined,
       ratings: await loadRatingsWithNames(mapped.id),
     };
   },

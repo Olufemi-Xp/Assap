@@ -49,12 +49,41 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
   const [phoneNumber, setPhoneNumber] = useState(initialProvider?.phoneNumber || "");
   const [whatsappNumber, setWhatsappNumber] = useState(initialProvider?.whatsappNumber || "");
   const [imageUrl, setImageUrl] = useState<string | null>(initialProvider?.imageUrl || null);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [isEditing, setIsEditing] = useState(!initialProvider);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const displayImageUrl = localPreviewUrl || imageUrl;
+
+  const compressImageToDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        const maxDim = 900;
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = canvas.getContext("2d");
+        URL.revokeObjectURL(objectUrl);
+        if (!ctx) {
+          reject(new Error("Could not process image"));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.78));
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Could not read image file"));
+      };
+      img.src = objectUrl;
+    });
 
   const handleImageUpload = async (file: File | null) => {
     if (!file) return;
@@ -68,6 +97,13 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
       return;
     }
 
+    // Show immediate visible preview of the actual selected image
+    const immediatePreview = URL.createObjectURL(file);
+    setLocalPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return immediatePreview;
+    });
+
     setIsUploadingImage(true);
     try {
       const formData = new FormData();
@@ -77,12 +113,26 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
         body: formData,
       });
       const json = await res.json();
-      if (!res.ok || !json.ok || !json.data?.url) {
-        throw new Error(json.error?.message || "Could not upload business card image");
+      if (res.ok && json.ok && json.data?.url) {
+        setImageUrl(json.data.url as string);
+        setLocalPreviewUrl(null);
+        URL.revokeObjectURL(immediatePreview);
+      } else {
+        // Fallback to compact JPEG data URL if storage bucket upload fails
+        const dataUrl = await compressImageToDataUrl(file);
+        setImageUrl(dataUrl);
+        setLocalPreviewUrl(null);
+        URL.revokeObjectURL(immediatePreview);
       }
-      setImageUrl(json.data.url as string);
-    } catch (err) {
-      setError((err as Error).message);
+    } catch {
+      try {
+        const dataUrl = await compressImageToDataUrl(file);
+        setImageUrl(dataUrl);
+        setLocalPreviewUrl(null);
+        URL.revokeObjectURL(immediatePreview);
+      } catch (err) {
+        setError((err as Error).message);
+      }
     } finally {
       setIsUploadingImage(false);
     }
@@ -210,7 +260,7 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
           locationArea={locationArea}
           averageRating={initialProvider?.averageRating || 0}
           ratingCount={initialProvider?.ratingCount || 0}
-          imageUrl={imageUrl}
+          imageUrl={displayImageUrl}
         />
       </div>
 
@@ -307,11 +357,11 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
               Upload the image customers see on the front of your Service Business Card in the Trade Directory (JPG, PNG, or WebP, max 5 MB).
             </p>
             <div className="rounded-xl border border-dashed border-border-subtle bg-surface-subtle/40 p-4 space-y-3">
-              {imageUrl ? (
+              {displayImageUrl ? (
                 <div className="space-y-3">
                   <div className="relative w-full h-44 rounded-lg overflow-hidden border border-border-subtle bg-slate-900">
                     <img
-                      src={imageUrl}
+                      src={displayImageUrl}
                       alt="Public business card preview"
                       className="w-full h-full object-cover"
                     />
@@ -335,7 +385,13 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => setImageUrl(null)}
+                      onClick={() => {
+                        setImageUrl(null);
+                        setLocalPreviewUrl((prev) => {
+                          if (prev) URL.revokeObjectURL(prev);
+                          return null;
+                        });
+                      }}
                       disabled={isUploadingImage}
                       className="gap-1.5 text-red-600 dark:text-red-400"
                     >

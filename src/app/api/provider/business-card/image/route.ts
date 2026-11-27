@@ -37,7 +37,8 @@ export async function POST(request: NextRequest) {
 
     const db = await createDbClient();
     const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-    const path = `business-cards/${session.user.id}/${crypto.randomUUID()}.${ext}`;
+    // First path segment must match auth.uid() to satisfy Supabase Storage RLS policies
+    const path = `${session.user.id}/business-card-${crypto.randomUUID()}.${ext}`;
 
     const { error } = await db.storage
       .from(BUCKET)
