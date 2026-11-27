@@ -75,6 +75,7 @@ export interface PortfolioItemDTO {
   completedOn: string | null;
   duration: string | null;
   extraDetails: string | null;
+  isVisible?: boolean;
   shareCount: number;
   likeCount: number;
   commentCount: number;

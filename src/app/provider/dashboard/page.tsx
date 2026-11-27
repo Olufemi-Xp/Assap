@@ -16,7 +16,6 @@ import type { PortfolioItemDTO } from "@/types/domain";
 import {
   Star,
   PhoneCall,
-  Sparkles,
   User as UserIcon,
   ExternalLink,
   ShieldAlert,
@@ -169,9 +168,6 @@ export default async function ProviderDashboardPage({
           </Card>
 
           <Card className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-brand/10 text-indigo-brand flex items-center justify-center">
-              <Sparkles className="w-5 h-5" />
-            </div>
             <div>
               <p className="text-xs text-text-muted">Listing Tier</p>
               <p className="font-bold text-sm text-text-primary">

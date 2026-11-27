@@ -11,7 +11,7 @@ import { ServiceBusinessCard } from "@/components/providers/service-business-car
 import { SERVICE_CATEGORIES } from "@/lib/constants/service-categories";
 import { normalizeLocation, type SelectedLocation } from "@/lib/constants/nigeria-locations";
 import type { ProviderDetailDTO } from "@/types/domain";
-import { Briefcase, Save, CheckCircle2, AlertCircle, Eye } from "lucide-react";
+import { Briefcase, Save, CheckCircle2, AlertCircle, Eye, Pencil, X } from "lucide-react";
 
 export interface BusinessCardEditorProps {
   initialProvider: ProviderDetailDTO | null;
@@ -46,6 +46,7 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
   const [phoneNumber, setPhoneNumber] = useState(initialProvider?.phoneNumber || "");
   const [whatsappNumber, setWhatsappNumber] = useState(initialProvider?.whatsappNumber || "");
 
+  const [isEditing, setIsEditing] = useState(!initialProvider);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -82,7 +83,7 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
 
       const json = await res.json();
       if (!res.ok || !json.ok) {
-        throw new Error(json.error?.message || "Failed to save Service Business Card");
+        throw new Error(json.error?.message || "Failed to save and publish Service Business Card");
       }
 
       if (json.data?.provider) {
@@ -95,7 +96,8 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
         if (saved.whatsappNumber) setWhatsappNumber(saved.whatsappNumber);
       }
 
-      setSuccess("Your Service Business Card has been saved and published to the Customer Trade Directory!");
+      setIsEditing(false);
+      setSuccess("Saved and published! Your Service Business Card is live for customers.");
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -106,7 +108,7 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
 
   return (
     <Card className="p-5 sm:p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-base sm:text-lg font-heading font-bold text-text-primary flex items-center gap-2">
             <Briefcase className="w-4 h-4 text-accent-primary" />
@@ -116,7 +118,40 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
             Define your service title and the exact tasks you handle. Customers see this card when searching services.
           </p>
         </div>
+
+        <Button
+          type="button"
+          variant={isEditing ? "outline" : "secondary"}
+          size="sm"
+          onClick={() => {
+            setError(null);
+            setIsEditing((prev) => !prev);
+          }}
+          className="gap-1.5 flex-shrink-0 self-start sm:self-auto"
+        >
+          {isEditing ? (
+            <>
+              <X className="w-3.5 h-3.5" />
+              <span>Close Editor</span>
+            </>
+          ) : (
+            <>
+              <Pencil className="w-3.5 h-3.5" />
+              <span>Edit</span>
+            </>
+          )}
+        </Button>
       </div>
+
+      {success && (
+        <div
+          role="status"
+          className="p-3.5 rounded-xl bg-status-success-bg/60 border border-status-success-border text-xs font-semibold text-status-success-text flex items-start gap-2"
+        >
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{success}</span>
+        </div>
+      )}
 
       {/* Live Customer Preview */}
       <div className="space-y-2">
@@ -140,99 +175,95 @@ export function BusinessCardEditor({ initialProvider, defaultName }: BusinessCar
       </div>
 
       {/* Editor Form */}
-      <form onSubmit={handleSave} className="space-y-4 pt-4 border-t border-border-subtle">
-        {error && (
-          <div className="p-3 rounded-xl bg-status-danger-bg/50 border border-status-danger-border text-xs text-status-danger-text flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{error}</span>
+      {isEditing && (
+        <form onSubmit={handleSave} className="space-y-4 pt-4 border-t border-border-subtle">
+          {error && (
+            <div className="p-3 rounded-xl bg-status-danger-bg/50 border border-status-danger-border text-xs text-status-danger-text flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Input
+              label="Business / Brand Name"
+              placeholder="e.g. Teniola Bespoke Tailoring"
+              value={businessName}
+              onChange={(e) => setBusinessName(e.target.value)}
+              required
+            />
+            <Input
+              label="Service Title"
+              placeholder="e.g. Fashion Designer, Electrician, Plumber"
+              value={serviceTitle}
+              onChange={(e) => setServiceTitle(e.target.value)}
+              required
+            />
           </div>
-        )}
-        {success && (
-          <div className="p-3 rounded-xl bg-status-success-bg/50 border border-status-success-border text-xs text-status-success-text flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{success}</span>
+
+          <div>
+            <label htmlFor="bc-category" className="block text-xs font-semibold text-text-primary mb-1">
+              Trade Category
+            </label>
+            <select
+              id="bc-category"
+              value={serviceCategory}
+              onChange={(e) => setServiceCategory(e.target.value)}
+              className="w-full h-10 px-3 rounded-xl border border-border-subtle bg-surface text-text-primary text-xs font-medium min-h-tap"
+            >
+              {SERVICE_CATEGORIES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
           </div>
-        )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input
-            label="Business / Brand Name"
-            placeholder="e.g. Teniola Bespoke Tailoring"
-            value={businessName}
-            onChange={(e) => setBusinessName(e.target.value)}
-            required
+          {/* Structured Service Areas Editor */}
+          <ServiceAreasEditor
+            value={serviceAreas}
+            onChange={setServiceAreas}
+            category={serviceCategory}
           />
+
+          {/* Location */}
+          <LocationSelector value={location} onChange={setLocation} compact />
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Input
+              label="Town / Neighborhood (optional)"
+              placeholder="e.g. Yaba, Ikeja, Wuse"
+              value={locationArea}
+              onChange={(e) => setLocationArea(e.target.value)}
+            />
+            <Input
+              label="Phone Number"
+              placeholder="08012345678"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              required
+            />
+            <Input
+              label="WhatsApp Number (optional)"
+              placeholder="Same as phone if blank"
+              value={whatsappNumber}
+              onChange={(e) => setWhatsappNumber(e.target.value)}
+            />
+          </div>
+
           <Input
-            label="Service Title"
-            placeholder="e.g. Fashion Designer, Electrician, Plumber"
-            value={serviceTitle}
-            onChange={(e) => setServiceTitle(e.target.value)}
-            required
+            label="Short Bio / Additional Note (optional)"
+            placeholder="e.g. 8 years experience, fast response across Lagos Mainland"
+            value={serviceDescription}
+            onChange={(e) => setServiceDescription(e.target.value)}
           />
-        </div>
 
-        <div>
-          <label htmlFor="bc-category" className="block text-xs font-semibold text-text-primary mb-1">
-            Trade Category
-          </label>
-          <select
-            id="bc-category"
-            value={serviceCategory}
-            onChange={(e) => setServiceCategory(e.target.value)}
-            className="w-full h-10 px-3 rounded-xl border border-border-subtle bg-surface text-text-primary text-xs font-medium min-h-tap"
-          >
-            {SERVICE_CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Structured Service Areas Editor */}
-        <ServiceAreasEditor
-          value={serviceAreas}
-          onChange={setServiceAreas}
-          category={serviceCategory}
-        />
-
-        {/* Location */}
-        <LocationSelector value={location} onChange={setLocation} compact />
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Input
-            label="Town / Neighborhood (optional)"
-            placeholder="e.g. Yaba, Ikeja, Wuse"
-            value={locationArea}
-            onChange={(e) => setLocationArea(e.target.value)}
-          />
-          <Input
-            label="Phone Number"
-            placeholder="08012345678"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            required
-          />
-          <Input
-            label="WhatsApp Number (optional)"
-            placeholder="Same as phone if blank"
-            value={whatsappNumber}
-            onChange={(e) => setWhatsappNumber(e.target.value)}
-          />
-        </div>
-
-        <Input
-          label="Short Bio / Additional Note (optional)"
-          placeholder="e.g. 8 years experience, fast response across Lagos Mainland"
-          value={serviceDescription}
-          onChange={(e) => setServiceDescription(e.target.value)}
-        />
-
-        <Button type="submit" isLoading={isSaving} className="gap-2">
-          <Save className="w-4 h-4" />
-          <span>Save &amp; Publish Service Business Card</span>
-        </Button>
-      </form>
+          <Button type="submit" isLoading={isSaving} className="gap-2">
+            <Save className="w-4 h-4" />
+            <span>Save and Publish</span>
+          </Button>
+        </form>
+      )}
     </Card>
   );
 }

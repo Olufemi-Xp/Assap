@@ -189,15 +189,18 @@ export function PortfolioGallery({
         </div>
       )}
 
-      {items.length === 0 ? (
+      {items.filter((item) => item.isVisible !== false).length === 0 ? (
         <div className="p-6 rounded-xl border border-dashed border-border-subtle bg-surface-subtle/40 text-center text-xs text-text-muted">
-          This service provider has not published any portfolio jobs yet.
+          This service provider has not published any visible portfolio jobs yet.
         </div>
       ) : (
         <div className="space-y-6">
-          {items.map((item) => {
-            const commentsOpen = Boolean(openComments[item.id]);
-            const itemComments = commentsByItem[item.id] || [];
+          {items
+            .filter((item) => item.isVisible !== false)
+            .map((item) => {
+              const commentsOpen = Boolean(openComments[item.id]);
+              const itemComments = commentsByItem[item.id] || [];
+              const singleImageUrl = item.afterImageUrl || item.beforeImageUrl;
 
             return (
               <article
@@ -230,37 +233,14 @@ export function PortfolioGallery({
                   )}
                 </div>
 
-                {/* Before & After Images */}
-                {(item.beforeImageUrl || item.afterImageUrl) && (
-                  <div
-                    className={`grid gap-3 ${
-                      item.beforeImageUrl && item.afterImageUrl ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
-                    }`}
-                  >
-                    {item.beforeImageUrl && (
-                      <div className="relative rounded-xl overflow-hidden border border-border-subtle bg-surface aspect-[4/3]">
-                        <span className="absolute top-2.5 left-2.5 z-10 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900/80 text-white">
-                          Before
-                        </span>
-                        <img
-                          src={item.beforeImageUrl}
-                          alt={`${item.title} before`}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    {item.afterImageUrl && (
-                      <div className="relative rounded-xl overflow-hidden border border-border-subtle bg-surface aspect-[4/3]">
-                        <span className="absolute top-2.5 left-2.5 z-10 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-accent-primary/90 text-white">
-                          After
-                        </span>
-                        <img
-                          src={item.afterImageUrl}
-                          alt={`${item.title} after`}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
+                {/* Single Job Image Window */}
+                {singleImageUrl && (
+                  <div className="relative rounded-xl overflow-hidden border border-border-subtle bg-surface aspect-[16/10]">
+                    <img
+                      src={singleImageUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 )}
 

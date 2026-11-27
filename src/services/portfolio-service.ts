@@ -7,7 +7,27 @@ import type { PortfolioCommentDTO, PortfolioItemDTO } from "@/types/domain";
 
 const BUCKET = "portfolio-images";
 
+const HIDDEN_PREFIX = "[HIDDEN] ";
+
+function decodeVisibility(rawExtra: string | null): { extraDetails: string | null; isVisible: boolean } {
+  if (!rawExtra) return { extraDetails: null, isVisible: true };
+  if (rawExtra.startsWith("[HIDDEN]")) {
+    const cleaned = rawExtra.replace(/^\[HIDDEN\]\s*/, "").trim();
+    return { extraDetails: cleaned || null, isVisible: false };
+  }
+  return { extraDetails: rawExtra, isVisible: true };
+}
+
+function encodeVisibility(extraDetails: string | null | undefined, isVisible: boolean): string | null {
+  const clean = (extraDetails || "").replace(/^\[HIDDEN\]\s*/, "").trim();
+  if (!isVisible) {
+    return clean ? `${HIDDEN_PREFIX}${clean}` : "[HIDDEN]";
+  }
+  return clean || null;
+}
+
 function mapItem(row: DbPortfolioItem, likeCount: number, commentCount: number, likedByViewer: boolean): PortfolioItemDTO {
+  const { extraDetails, isVisible } = decodeVisibility(row.extra_details);
   return {
     id: row.id,
     providerId: row.provider_id,
@@ -18,7 +38,8 @@ function mapItem(row: DbPortfolioItem, likeCount: number, commentCount: number, 
     jobLocation: row.job_location,
     completedOn: row.completed_on,
     duration: row.duration,
-    extraDetails: row.extra_details,
+    extraDetails,
+    isVisible,
     shareCount: row.share_count,
     likeCount,
     commentCount,
@@ -118,6 +139,55 @@ export const portfolioService = {
     return items.map((row) =>
       mapItem(row, likeCounts.get(row.id) || 0, commentCounts.get(row.id) || 0, likedByViewer.has(row.id))
     );
+  },
+
+  async updateItem(
+    userId: string,
+    itemId: string,
+    input: {
+      title?: string;
+      deliveryStory?: string;
+      jobLocation?: string | null;
+      completedOn?: string | null;
+      duration?: string | null;
+      extraDetails?: string | null;
+      isVisible?: boolean;
+    }
+  ): Promise<PortfolioItemDTO> {
+    const db = await createDbClient();
+    const providerId = await getOwnedProviderId(userId);
+    const existing = await getActiveItem(itemId);
+    if (existing.provider_id !== providerId) {
+      throw new ForbiddenError("You can only edit your own portfolio items.");
+    }
+
+    const currentDecoded = decodeVisibility(existing.extra_details);
+    const nextVisible = input.isVisible !== undefined ? input.isVisible : currentDecoded.isVisible;
+    const nextExtraRaw =
+      input.extraDetails !== undefined ? input.extraDetails : currentDecoded.extraDetails;
+    const encodedExtra = encodeVisibility(nextExtraRaw, nextVisible);
+
+    const updates: Record<string, unknown> = {
+      extra_details: encodedExtra,
+    };
+    if (input.title !== undefined) updates.title = input.title.trim();
+    if (input.deliveryStory !== undefined) updates.delivery_story = input.deliveryStory.trim();
+    if (input.jobLocation !== undefined) updates.job_location = input.jobLocation?.trim() || null;
+    if (input.completedOn !== undefined) updates.completed_on = input.completedOn?.trim() || null;
+    if (input.duration !== undefined) updates.duration = input.duration?.trim() || null;
+
+    const { data, error } = await db
+      .from("portfolio_items")
+      .update(updates)
+      .eq("id", itemId)
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      throw new AppError(error?.message || "Failed to update portfolio item", 500, "PORTFOLIO_UPDATE_ERROR");
+    }
+
+    return mapItem(data as DbPortfolioItem, 0, 0, false);
   },
 
   async createItem(
