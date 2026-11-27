@@ -10,6 +10,18 @@ export interface InitializePaystackOptions {
   metadata?: Record<string, unknown>;
 }
 
+function buildMockCheckoutUrl(callbackUrl: string, reference: string): string {
+  try {
+    const url = new URL(callbackUrl);
+    url.searchParams.set("reference", reference);
+    url.searchParams.set("mock", "true");
+    return url.toString();
+  } catch {
+    const sep = callbackUrl.includes("?") ? "&" : "?";
+    return `${callbackUrl}${sep}reference=${encodeURIComponent(reference)}&mock=true`;
+  }
+}
+
 export const paystackService = {
   verifyWebhookSignature(rawBody: string, signature: string | null): boolean {
     if (!signature) return false;
@@ -42,7 +54,7 @@ export const paystackService = {
       if (!response.ok || !json.status) {
         // Fallback for offline/test environments: generate a mock checkout link
         return {
-          authorization_url: `${opts.callbackUrl}?reference=${opts.reference}&mock=true`,
+          authorization_url: buildMockCheckoutUrl(opts.callbackUrl, opts.reference),
           access_code: "mock_access_code",
           reference: opts.reference,
         };
@@ -55,7 +67,7 @@ export const paystackService = {
       };
     } catch {
       return {
-        authorization_url: `${opts.callbackUrl}?reference=${opts.reference}&mock=true`,
+        authorization_url: buildMockCheckoutUrl(opts.callbackUrl, opts.reference),
         access_code: "mock_access_code",
         reference: opts.reference,
       };

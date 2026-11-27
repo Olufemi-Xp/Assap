@@ -10,7 +10,8 @@ export async function POST(request: NextRequest) {
     const email = body.email || "provider@asap.ng";
     const reference = `ASAP_SUB_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-    const callbackUrl = `${env.NEXT_PUBLIC_APP_URL}/provider/subscription?reference=${reference}`;
+    const origin = request.nextUrl.origin || env.NEXT_PUBLIC_APP_URL;
+    const callbackUrl = `${origin}/provider/subscription?reference=${reference}`;
 
     const checkout = await paystackService.initializeTransaction({
       email,
