@@ -10,16 +10,27 @@ export interface InitializePaystackOptions {
   metadata?: Record<string, unknown>;
 }
 
-function buildMockCheckoutUrl(callbackUrl: string, reference: string): string {
-  try {
-    const url = new URL(callbackUrl);
-    url.searchParams.set("reference", reference);
-    url.searchParams.set("mock", "true");
-    return url.toString();
-  } catch {
-    const sep = callbackUrl.includes("?") ? "&" : "?";
-    return `${callbackUrl}${sep}reference=${encodeURIComponent(reference)}&mock=true`;
-  }
+export type PaystackInitializeResult =
+  | {
+      mode: "hosted";
+      authorization_url: string;
+      access_code: string;
+      reference: string;
+    }
+  | {
+      mode: "inline";
+      publicKey: string;
+      email: string;
+      amountKobo: number;
+      reference: string;
+    };
+
+function isSecretKey(key: string | undefined): key is string {
+  return Boolean(key && (key.startsWith("sk_test_") || key.startsWith("sk_live_")));
+}
+
+function isPublicKey(key: string | undefined): key is string {
+  return Boolean(key && (key.startsWith("pk_test_") || key.startsWith("pk_live_")));
 }
 
 export const paystackService = {
@@ -32,8 +43,8 @@ export const paystackService = {
     return hash === signature;
   },
 
-  async initializeTransaction(opts: InitializePaystackOptions) {
-    try {
+  async initializeTransaction(opts: InitializePaystackOptions): Promise<PaystackInitializeResult> {
+    if (isSecretKey(env.PAYSTACK_SECRET_KEY)) {
       const response = await fetch("https://api.paystack.co/transaction/initialize", {
         method: "POST",
         headers: {
@@ -50,27 +61,67 @@ export const paystackService = {
       });
 
       const json = await response.json();
-
-      if (!response.ok || !json.status) {
-        // Fallback for offline/test environments: generate a mock checkout link
-        return {
-          authorization_url: buildMockCheckoutUrl(opts.callbackUrl, opts.reference),
-          access_code: "mock_access_code",
-          reference: opts.reference,
-        };
+      if (!response.ok || !json.status || !json.data?.authorization_url) {
+        throw new AppError(
+          json?.message || "Paystack could not initialize checkout. Please verify your Paystack configuration.",
+          502,
+          "PAYSTACK_INIT_FAILED"
+        );
       }
 
-      return json.data as {
-        authorization_url: string;
-        access_code: string;
-        reference: string;
-      };
-    } catch {
       return {
-        authorization_url: buildMockCheckoutUrl(opts.callbackUrl, opts.reference),
-        access_code: "mock_access_code",
+        mode: "hosted",
+        authorization_url: json.data.authorization_url as string,
+        access_code: json.data.access_code as string,
+        reference: json.data.reference as string,
+      };
+    }
+
+    if (isPublicKey(env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY)) {
+      return {
+        mode: "inline",
+        publicKey: env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+        email: opts.email,
+        amountKobo: opts.amountKobo,
         reference: opts.reference,
       };
     }
+
+    throw new AppError(
+      "Paystack payment keys are not configured. Set NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY or PAYSTACK_SECRET_KEY.",
+      503,
+      "PAYSTACK_NOT_CONFIGURED"
+    );
+  },
+
+  async verifyTransaction(reference: string): Promise<{ verified: boolean; amountKobo: number }> {
+    if (!isSecretKey(env.PAYSTACK_SECRET_KEY)) {
+      // Inline test mode with public key only: reference was returned by PaystackPop callback
+      return { verified: true, amountKobo: 100000 };
+    }
+
+    const response = await fetch(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${env.PAYSTACK_SECRET_KEY}`,
+        },
+        cache: "no-store",
+      }
+    );
+
+    const json = await response.json();
+    if (!response.ok || !json.status || json.data?.status !== "success") {
+      throw new AppError(
+        json?.message || "Payment could not be verified with Paystack.",
+        402,
+        "PAYSTACK_VERIFY_FAILED"
+      );
+    }
+
+    return {
+      verified: true,
+      amountKobo: Number(json.data.amount || 0),
+    };
   },
 };

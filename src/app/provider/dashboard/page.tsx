@@ -207,7 +207,12 @@ export default async function ProviderDashboardPage({
         )}
 
         {/* Subscription Control Card */}
-        {subStatus && <SubscriptionStatusCard status={subStatus} />}
+        {subStatus && (
+          <SubscriptionStatusCard
+            status={subStatus}
+            providerEmail={session.user.email || undefined}
+          />
+        )}
       </div>
     </AppShell>
   );
