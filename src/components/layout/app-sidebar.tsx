@@ -228,19 +228,15 @@ export function AppSidebar() {
                   aria-label="Account menu"
                   className="absolute bottom-full mb-2 left-0 w-60 rounded-2xl border border-border-subtle bg-surface shadow-2xl overflow-hidden z-50"
                 >
-                  {/* Top: Customer Name & Email -> Profile Settings */}
-                  <Link
-                    href="/profile"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-4 py-3 border-b border-border-subtle hover:bg-surface-subtle/60 transition-colors"
-                  >
+                  {/* Top: Static Customer Name & Email (non-interactive) */}
+                  <div className="px-4 py-3 border-b border-border-subtle select-text">
                     <p className="font-heading font-bold text-sm text-text-primary truncate">
                       {displayName}
                     </p>
                     {user.email && (
                       <p className="text-[11px] text-text-muted truncate">{user.email}</p>
                     )}
-                  </Link>
+                  </div>
 
                   <div className="p-1.5 space-y-0.5">
                     <Link

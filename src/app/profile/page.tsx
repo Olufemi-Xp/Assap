@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { createClient } from "@/lib/supabase/client";
 import { getHomeLabelForRole, getHomeRouteForRole } from "@/lib/routing";
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   Camera,
@@ -22,6 +23,7 @@ import {
   Phone,
   ShieldCheck,
   Upload,
+  X,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -29,14 +31,34 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [photoMenuOpen, setPhotoMenuOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [savedFeedback, setSavedFeedback] = useState(false);
-  const cameraInputRef = useRef<HTMLInputElement | null>(null);
+
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const homeRoute = getHomeRouteForRole(role);
   const homeLabel = getHomeLabelForRole(role);
   const isProvider = role === "provider";
+
+  const stopCameraStream = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopCameraStream();
+    };
+  }, [stopCameraStream]);
 
   useEffect(() => {
     if (!user) return;
@@ -53,6 +75,68 @@ export default function ProfilePage() {
     }
   }, [user]);
 
+  const persistAvatar = async (dataUrl: string) => {
+    if (!user) return;
+    setAvatarUrl(dataUrl);
+    try {
+      localStorage.setItem(`asap-avatar-${user.id}`, dataUrl);
+      const supabase = createClient();
+      await supabase.auth.updateUser({ data: { avatar_url: dataUrl } });
+    } catch {
+      // Keep local preview even if metadata update is skipped
+    }
+  };
+
+  const handleOpenCamera = async () => {
+    setPhotoMenuOpen(false);
+    setCameraError(null);
+    setCameraOpen(true);
+
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      setCameraError(
+        "Live camera access is unavailable in this browser or context. Please use Upload Image instead."
+      );
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch {
+      setCameraError(
+        "Camera permission was denied or no camera was detected. Please allow camera access or use Upload Image."
+      );
+    }
+  };
+
+  const handleCloseCamera = () => {
+    stopCameraStream();
+    setCameraOpen(false);
+    setCameraError(null);
+  };
+
+  const handleCaptureFrame = async () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth || !video.videoHeight) return;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+    handleCloseCamera();
+    await persistAvatar(dataUrl);
+  };
+
   const handleImageSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
@@ -61,14 +145,8 @@ export default function ProfilePage() {
     const reader = new FileReader();
     reader.onload = async () => {
       const dataUrl = typeof reader.result === "string" ? reader.result : null;
-      if (!dataUrl) return;
-      setAvatarUrl(dataUrl);
-      try {
-        localStorage.setItem(`asap-avatar-${user.id}`, dataUrl);
-        const supabase = createClient();
-        await supabase.auth.updateUser({ data: { avatar_url: dataUrl } });
-      } catch {
-        // Keep local preview even if metadata update is skipped
+      if (dataUrl) {
+        await persistAvatar(dataUrl);
       }
     };
     reader.readAsDataURL(file);
@@ -152,7 +230,7 @@ export default function ProfilePage() {
         </div>
 
         <Card className="p-6 space-y-5">
-          {/* Profile Picture with Edit (Take Camera Photo / Upload Image) */}
+          {/* Profile Picture with Edit (Live Camera Capture / Upload Image from Gallery) */}
           <div className="flex items-center gap-4">
             <div className="relative flex-shrink-0">
               {avatarUrl ? (
@@ -178,10 +256,10 @@ export default function ProfilePage() {
               </button>
 
               {photoMenuOpen && (
-                <div className="absolute left-0 top-full mt-2 w-48 rounded-xl border border-border-subtle bg-surface shadow-xl p-1.5 z-30 space-y-1">
+                <div className="absolute left-0 top-full mt-2 w-52 rounded-xl border border-border-subtle bg-surface shadow-xl p-1.5 z-30 space-y-1">
                   <button
                     type="button"
-                    onClick={() => cameraInputRef.current?.click()}
+                    onClick={handleOpenCamera}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-text-primary hover:bg-surface-subtle transition-colors"
                   >
                     <Camera className="w-3.5 h-3.5 text-accent-primary" />
@@ -189,7 +267,10 @@ export default function ProfilePage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => uploadInputRef.current?.click()}
+                    onClick={() => {
+                      setPhotoMenuOpen(false);
+                      uploadInputRef.current?.click();
+                    }}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-text-primary hover:bg-surface-subtle transition-colors"
                   >
                     <Upload className="w-3.5 h-3.5 text-accent-primary" />
@@ -198,14 +279,6 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="user"
-                onChange={handleImageSelected}
-                className="hidden"
-              />
               <input
                 ref={uploadInputRef}
                 type="file"
@@ -305,6 +378,64 @@ export default function ProfilePage() {
           </Button>
         </Card>
       </div>
+
+      {/* Live Camera Capture Modal */}
+      {cameraOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Live camera capture"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-4"
+        >
+          <div className="w-full max-w-[440px] rounded-2xl border border-border-subtle bg-surface shadow-2xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-border-subtle flex items-center justify-between">
+              <span className="font-heading font-bold text-sm text-text-primary flex items-center gap-2">
+                <Camera className="w-4 h-4 text-accent-primary" />
+                <span>Take Camera Photo</span>
+              </span>
+              <button
+                type="button"
+                onClick={handleCloseCamera}
+                aria-label="Close camera"
+                className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-subtle"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {cameraError ? (
+                <div className="p-4 rounded-xl bg-status-danger-bg/40 border border-status-danger-border text-xs text-status-danger-text flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{cameraError}</span>
+                </div>
+              ) : (
+                <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden bg-slate-950">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={handleCloseCamera}>
+                  Cancel
+                </Button>
+                {!cameraError && (
+                  <Button type="button" size="sm" onClick={handleCaptureFrame} className="gap-1.5">
+                    <Camera className="w-4 h-4" />
+                    <span>Capture Photo</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }
