@@ -74,11 +74,11 @@ export function ProviderCard({ provider }: ProviderCardProps) {
         }
       }}
     >
-      {/* Soft ambient multi-color outer glow (orbits on front, steady beaming on back) */}
+      {/* Soft ambient multi-color outer glow (slowly orbits on front, steady beaming on back) */}
       <span
         aria-hidden="true"
         className={`pointer-events-none absolute -inset-1 rounded-[18px] blur-md transition-opacity duration-300 overflow-hidden ${
-          isFlipped ? "opacity-85" : "opacity-45"
+          isFlipped ? "opacity-95" : "opacity-55"
         }`}
       >
         <span
@@ -88,7 +88,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
         />
       </span>
 
-      {/* Crisp 2px multi-color border ring (blue, red, teal green, gold) */}
+      {/* Crisp continuous 2px multi-color border ring (blue, red, gold, teal green) */}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden"

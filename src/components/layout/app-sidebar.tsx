@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -20,6 +20,7 @@ import {
   CreditCard,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 
 const SIDEBAR_STORAGE_KEY = "asap-sidebar-collapsed";
@@ -30,6 +31,8 @@ export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains("dark"));
@@ -41,10 +44,30 @@ export function AppSidebar() {
     }
   }, []);
 
-  // Close mobile drawer when route changes
+  // Close mobile drawer & popover menu when route changes
   useEffect(() => {
     setMobileOpen(false);
+    setMenuOpen(false);
   }, [pathname]);
+
+  // Close popover menu on outside click or Escape
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handlePointerDown = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
 
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
@@ -195,55 +218,92 @@ export function AppSidebar() {
           })}
         </nav>
 
-        {/* Bottom Controls: Profile, Theme, Sign Out */}
-        <div className="p-2.5 border-t border-border-subtle space-y-1">
+        {/* Bottom Section: Single Customer Initial Circle Button + Popover Menu */}
+        <div className="p-3 border-t border-border-subtle">
           {!isLoading && user ? (
-            <>
-              <Link
-                href="/profile"
-                title={isCompact ? `Profile (${displayName})` : undefined}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors min-h-tap ${
-                  isCompact ? "justify-center px-0" : ""
-                } ${
-                  pathname.startsWith("/profile")
-                    ? "bg-accent-primary text-white shadow-sm"
-                    : "text-text-secondary hover:text-text-primary hover:bg-surface-subtle"
-                }`}
-              >
-                <UserIcon className="w-4 h-4 flex-shrink-0" />
-                {!isCompact && <span className="truncate">{displayName}</span>}
-              </Link>
+            <div ref={menuRef} className={`relative flex ${isCompact ? "justify-center" : "justify-start"}`}>
+              {menuOpen && (
+                <div
+                  role="menu"
+                  aria-label="Account menu"
+                  className="absolute bottom-full mb-2 left-0 w-60 rounded-2xl border border-border-subtle bg-surface shadow-2xl overflow-hidden z-50"
+                >
+                  {/* Top: Customer Name & Email -> Profile Settings */}
+                  <Link
+                    href="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-3 border-b border-border-subtle hover:bg-surface-subtle/60 transition-colors"
+                  >
+                    <p className="font-heading font-bold text-sm text-text-primary truncate">
+                      {displayName}
+                    </p>
+                    {user.email && (
+                      <p className="text-[11px] text-text-muted truncate">{user.email}</p>
+                    )}
+                  </Link>
+
+                  <div className="p-1.5 space-y-0.5">
+                    <Link
+                      href="/profile#settings"
+                      onClick={() => setMenuOpen(false)}
+                      role="menuitem"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-surface-subtle transition-colors"
+                    >
+                      <Settings className="w-4 h-4 text-accent-primary flex-shrink-0" />
+                      <span>Settings</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={toggleTheme}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-surface-subtle transition-colors"
+                    >
+                      <span className="flex items-center gap-2.5">
+                        {isDark ? (
+                          <Sun className="w-4 h-4 text-gold flex-shrink-0" />
+                        ) : (
+                          <Moon className="w-4 h-4 flex-shrink-0" />
+                        )}
+                        <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
+                      </span>
+                      <span
+                        className={`w-7 h-4 rounded-full p-0.5 transition-colors flex items-center ${
+                          isDark ? "bg-accent-primary justify-end" : "bg-border-subtle justify-start"
+                        }`}
+                      >
+                        <span className="w-3 h-3 rounded-full bg-white shadow-sm" />
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        signOut();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4 flex-shrink-0" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <button
                 type="button"
-                onClick={toggleTheme}
-                title={isCompact ? "Toggle theme" : undefined}
-                aria-label="Toggle theme"
-                className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-subtle transition-colors min-h-tap ${
-                  isCompact ? "justify-center px-0" : ""
-                }`}
+                onClick={() => setMenuOpen((prev) => !prev)}
+                aria-expanded={menuOpen}
+                aria-haspopup="menu"
+                aria-label={`${displayName} account menu`}
+                title={displayName}
+                className="w-11 h-11 rounded-full bg-accent-primary hover:bg-accent-primary-hover text-white font-heading font-bold text-base flex items-center justify-center shadow-md transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2"
               >
-                {isDark ? (
-                  <Sun className="w-4 h-4 text-gold flex-shrink-0" />
-                ) : (
-                  <Moon className="w-4 h-4 flex-shrink-0" />
-                )}
-                {!isCompact && <span>{isDark ? "Light Mode" : "Dark Mode"}</span>}
+                {displayName.charAt(0).toUpperCase()}
               </button>
-
-              <button
-                type="button"
-                onClick={() => signOut()}
-                title={isCompact ? "Sign Out" : undefined}
-                aria-label="Sign out"
-                className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors min-h-tap ${
-                  isCompact ? "justify-center px-0" : ""
-                }`}
-              >
-                <LogOut className="w-4 h-4 flex-shrink-0" />
-                {!isCompact && <span>Sign Out</span>}
-              </button>
-            </>
+            </div>
           ) : !isLoading ? (
             <Link
               href="/auth/login"

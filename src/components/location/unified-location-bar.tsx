@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronDown, ChevronRight, MapPin, RotateCcw, Search, X } from "lucide-react";
+import { ChevronDown, ChevronRight, MapPin, Search, X } from "lucide-react";
 import { NIGERIA_STATES } from "@/lib/constants/nigeria-states";
 import {
   EMPTY_LOCATION,
@@ -15,35 +15,20 @@ import {
 export interface UnifiedLocationBarProps {
   value: SelectedLocation;
   onChange: (next: SelectedLocation) => void;
-  onSave?: () => void;
-  isSaving?: boolean;
-  savedFeedback?: boolean;
-  showSaveButton?: boolean;
 }
 
 type Step = "state" | "city" | "lga";
 
 /**
- * Single unified "Location" selector bar for the Trade Directory.
- * Clicking the Location bar opens a cascading popout:
- *   1. All 36 Nigerian States (+ FCT)
- *   2. Cities under the selected State (opens automatically after State pick)
- *   3. Local Governments under the selected City/State (opens automatically after City pick)
+ * Compact unified "Location" bar designed to sit inline beside "Search Services".
+ * Clicking opens a cascading popout: 36 Nigerian States -> Cities -> LGAs.
  */
-export function UnifiedLocationBar({
-  value,
-  onChange,
-  onSave,
-  isSaving = false,
-  savedFeedback = false,
-  showSaveButton = false,
-}: UnifiedLocationBarProps) {
+export function UnifiedLocationBar({ value, onChange }: UnifiedLocationBarProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<Step>("state");
   const [filterText, setFilterText] = useState("");
 
-  // Close popout on outside click or Escape
   useEffect(() => {
     if (!isOpen) return;
     const handlePointerDown = (e: MouseEvent) => {
@@ -126,7 +111,8 @@ export function UnifiedLocationBar({
     setIsOpen(false);
   };
 
-  const handleReset = () => {
+  const handleReset = (e: React.MouseEvent) => {
+    e.stopPropagation();
     onChange(EMPTY_LOCATION);
     setFilterText("");
     setStep("state");
@@ -137,89 +123,45 @@ export function UnifiedLocationBar({
   const activeSummary = formatLocation(value);
 
   return (
-    <div ref={containerRef} className="relative z-30">
-      <div className="p-4 sm:p-5 rounded-2xl border border-border-subtle bg-surface shadow-sm space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg bg-accent-primary/10 text-accent-primary flex items-center justify-center">
-              <MapPin className="w-4 h-4" />
-            </span>
-            <div>
-              <span className="block text-xs sm:text-sm font-heading font-bold text-text-primary">
-                Location
-              </span>
-              <p className="text-[11px] text-text-muted">
-                Click Location to choose State, City, and Local Government
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {showSaveButton && value.state && onSave && (
-              <button
-                type="button"
-                onClick={onSave}
-                disabled={isSaving}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent-primary/10 text-accent-primary hover:bg-accent-primary/20 transition-colors disabled:opacity-50"
-              >
-                {savedFeedback ? (
-                  <>
-                    <Check className="w-3.5 h-3.5" /> Saved
-                  </>
-                ) : isSaving ? (
-                  "Saving..."
-                ) : (
-                  "Save Location"
-                )}
-              </button>
-            )}
-            {activeSummary && (
-              <button
-                type="button"
-                onClick={handleReset}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-text-muted hover:text-text-primary hover:bg-surface-subtle transition-colors"
-              >
-                <RotateCcw className="w-3 h-3" /> Reset
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Single Unified Location Bar */}
+    <div ref={containerRef} className="relative z-30 sm:w-[220px] md:w-[250px] flex-shrink-0">
+      <div className="flex items-center h-11 rounded-xl border border-border-subtle bg-surface hover:border-accent-primary focus-within:ring-2 focus-within:ring-accent-primary transition-colors">
         <button
           type="button"
           onClick={openPopout}
           aria-expanded={isOpen}
-          aria-haspopup="listbox"
-          className="w-full min-h-12 px-4 py-2.5 rounded-xl border border-border-subtle bg-canvas/70 hover:border-accent-primary focus:outline-none focus:ring-2 focus:ring-accent-primary transition-colors flex items-center justify-between gap-3 text-left"
+          aria-haspopup="dialog"
+          className="flex-1 h-full px-3.5 flex items-center justify-between gap-2 text-left min-w-0 focus:outline-none"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
+          <span className="flex items-center gap-2 min-w-0">
             <MapPin className="w-4 h-4 text-accent-primary flex-shrink-0" />
-            <span className="text-xs font-bold uppercase tracking-wider text-text-muted flex-shrink-0">
-              Location:
+            <span className="text-xs sm:text-sm font-semibold text-text-primary truncate">
+              {activeSummary || "Location"}
             </span>
-            <span
-              className={`text-xs sm:text-sm font-semibold truncate ${
-                activeSummary ? "text-text-primary" : "text-text-secondary"
-              }`}
-            >
-              {activeSummary || "All 36 States & FCT — Click to select State, City & LGA"}
-            </span>
-          </div>
+          </span>
           <ChevronDown
             className={`w-4 h-4 text-text-muted flex-shrink-0 transition-transform duration-200 ${
               isOpen ? "rotate-180 text-accent-primary" : ""
             }`}
           />
         </button>
+
+        {activeSummary && (
+          <button
+            type="button"
+            onClick={handleReset}
+            aria-label="Clear location"
+            className="pr-3 pl-1 h-full flex items-center text-text-muted hover:text-text-primary"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
-      {/* Cascading Popout Panel */}
       {isOpen && (
         <div
           role="dialog"
           aria-label="Select Location"
-          className="absolute left-0 right-0 mt-2 rounded-2xl border border-border-subtle bg-surface shadow-2xl overflow-hidden z-40"
+          className="absolute left-0 sm:w-[540px] max-w-[calc(100vw-2rem)] mt-2 rounded-2xl border border-border-subtle bg-surface shadow-2xl overflow-hidden z-40"
         >
           {/* Step Breadcrumb Header */}
           <div className="px-4 py-3 border-b border-border-subtle bg-surface-subtle/40 flex flex-wrap items-center justify-between gap-2">
@@ -313,7 +255,7 @@ export function UnifiedLocationBar({
           {/* Options Grid */}
           <div className="max-h-[300px] overflow-y-auto p-3">
             {step === "state" && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {filteredStates.map((s) => {
                   const active = value.state === s.value;
                   return (
@@ -348,7 +290,7 @@ export function UnifiedLocationBar({
                 >
                   All Cities in {selectedStateLabel}
                 </button>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {filteredCities.map((c) => {
                     const active = value.city === c.name;
                     return (
@@ -380,7 +322,7 @@ export function UnifiedLocationBar({
                 >
                   All Local Governments in {value.city || selectedStateLabel}
                 </button>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {filteredLgas.map((lga) => {
                     const active = value.lga === lga;
                     return (

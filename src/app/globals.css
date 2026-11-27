@@ -524,19 +524,28 @@ body {
     from 0deg,
     #3b82f6 0deg,
     #ef4444 90deg,
-    #14b8a6 180deg,
-    #facc15 270deg,
+    #facc15 180deg,
+    #14b8a6 270deg,
     #3b82f6 360deg
   );
 }
 
+@keyframes assap-card-orbit-slow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .assap-card-glow-orbit {
-  animation: assap-flare-spin 5.5s linear infinite;
+  animation: assap-card-orbit-slow 14s linear infinite;
   will-change: transform;
 }
 
 .assap-card-glow-static {
   animation: none;
-  transform: rotate(0deg) scale(1.03);
-  filter: brightness(1.15);
+  transform: rotate(0deg);
+  filter: brightness(1.22) saturate(1.15);
 }
