@@ -16,7 +16,6 @@ import {
   Moon,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Wrench,
   CreditCard,
   Menu,
@@ -111,13 +110,6 @@ export function AppSidebar() {
       icon: Wrench,
       active: pathname.startsWith("/onboarding"),
       show: Boolean(user),
-    },
-    {
-      href: "/?welcome=1",
-      label: "Welcome Page",
-      icon: Sparkles,
-      active: false,
-      show: true,
     },
   ].filter((item) => item.show);
 

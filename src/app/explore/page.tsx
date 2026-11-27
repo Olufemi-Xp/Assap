@@ -7,7 +7,11 @@ import { ProviderCard } from "@/components/providers/provider-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SERVICE_CATEGORIES } from "@/lib/constants/service-categories";
-import { DIRECTORY_SHOWCASE_PROVIDERS } from "@/lib/constants/directory-showcase";
+import {
+  ALL_DIRECTORY_IMAGES,
+  DIRECTORY_SHOWCASE_PROVIDERS,
+  resolveProviderImage,
+} from "@/lib/constants/directory-showcase";
 import {
   EMPTY_LOCATION,
   formatLocation,
@@ -15,7 +19,7 @@ import {
 } from "@/lib/constants/nigeria-locations";
 import { useAuth } from "@/components/auth/auth-provider";
 import type { ProviderListItemDTO } from "@/types/domain";
-import { Search, SlidersHorizontal, Users, AlertCircle, Play } from "lucide-react";
+import { Search, SlidersHorizontal, Users, AlertCircle } from "lucide-react";
 
 export default function ExplorePage() {
   const { user } = useAuth();
@@ -89,11 +93,27 @@ export default function ExplorePage() {
   const activeLocationLabel = formatLocation(location);
 
   const displayedProviders = useMemo(() => {
-    const seenNames = new Set(providers.map((p) => p.businessName.trim().toLowerCase()));
+    const seenNames = new Set<string>();
+    const usedImages = new Set<string>();
+
+    // Ensure live DB providers each get a unique non-repeating image from Images/
+    const liveWithUniqueImages = providers.map((p) => {
+      seenNames.add(p.businessName.trim().toLowerCase());
+      const preferred = resolveProviderImage(p);
+      let chosen = preferred;
+      if (usedImages.has(chosen)) {
+        const nextFree = ALL_DIRECTORY_IMAGES.find((img) => !usedImages.has(img));
+        if (nextFree) chosen = nextFree;
+      }
+      usedImages.add(chosen);
+      return { ...p, imageUrl: chosen };
+    });
+
     const q = search.trim().toLowerCase();
 
     const matchingShowcase = DIRECTORY_SHOWCASE_PROVIDERS.filter((item) => {
       if (seenNames.has(item.businessName.trim().toLowerCase())) return false;
+      if (item.imageUrl && usedImages.has(item.imageUrl)) return false;
       if (location.state && item.state !== location.state) return false;
       if (location.city && (item.city || "").toLowerCase() !== location.city.toLowerCase()) return false;
       if (location.lga && (item.lga || "").toLowerCase() !== location.lga.toLowerCase()) return false;
@@ -114,11 +134,11 @@ export default function ExplorePage() {
           .toLowerCase();
         if (!haystack.includes(q)) return false;
       }
+      if (item.imageUrl) usedImages.add(item.imageUrl);
       return true;
     });
 
-    const combined = [...providers, ...matchingShowcase];
-    return combined.length > 12 && providers.length === 0 ? combined.slice(0, 12) : combined;
+    return [...liveWithUniqueImages, ...matchingShowcase].slice(0, 15);
   }, [providers, location.state, location.city, location.lga, selectedCategory, search]);
 
   return (
@@ -188,11 +208,6 @@ export default function ExplorePage() {
               ))}
             </select>
           </div>
-
-          <Button type="submit" isLoading={isLoading} className="gap-1.5 h-11 px-5 flex-shrink-0">
-            <Play className="w-3.5 h-3.5 fill-current" />
-            <span>Run</span>
-          </Button>
         </form>
 
         {loadError && (
@@ -232,8 +247,8 @@ export default function ExplorePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {displayedProviders.map((p, idx) => (
-              <ProviderCard key={p.id} provider={p} cardIndex={idx} />
+            {displayedProviders.map((p) => (
+              <ProviderCard key={p.id} provider={p} />
             ))}
           </div>
         )}

@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
 import {
   Home,
-  Sparkles,
   User as UserIcon,
   LogOut,
   PanelLeft,
@@ -134,14 +133,6 @@ export function CustomerNavPane() {
             >
               <Home className="w-3.5 h-3.5 flex-shrink-0" />
               <span>Home / Dashboard</span>
-            </Link>
-
-            <Link
-              href="/?welcome=1"
-              className="flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-subtle transition-colors"
-            >
-              <Sparkles className="w-3.5 h-3.5 flex-shrink-0 text-gold" />
-              <span>Welcome Page</span>
             </Link>
 
             <Link

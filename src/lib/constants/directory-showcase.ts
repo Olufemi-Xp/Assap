@@ -317,7 +317,89 @@ export const DIRECTORY_SHOWCASE_PROVIDERS: ProviderListItemDTO[] = [
     whatsappNumber: "+2348123456789",
     subscriptionStatusBadge: "paid_active",
   },
+  {
+    id: "dir-13-event-chef",
+    userId: "dir-u-13",
+    businessName: "NaijaFeast Event Chefs",
+    serviceTitle: "Event Chef & Catering",
+    serviceCategory: "other",
+    serviceDescription: "Private dining, party jollof & small chops, corporate buffets, and traditional event catering.",
+    serviceAreas: [
+      "Wedding & party catering",
+      "Private chef home dining",
+      "Small chops & grill platters",
+      "Corporate lunch boxes",
+    ],
+    state: "lagos",
+    city: "Lekki / Eti-Osa",
+    lga: "Eti-Osa",
+    locationArea: "Victoria Island",
+    officeAddress: "18 Adeola Odeku Street, Victoria Island, Lagos",
+    imageUrl: "/images/Event%20Chef.jpeg",
+    averageRating: 4.9,
+    ratingCount: 39,
+    canContact: true,
+    phoneNumber: "+2348134567890",
+    whatsappNumber: "+2348134567890",
+    subscriptionStatusBadge: "paid_active",
+  },
+  {
+    id: "dir-14-event-decor",
+    userId: "dir-u-14",
+    businessName: "RoyalBloom Event Decor",
+    serviceTitle: "Event Decor & Styling",
+    serviceCategory: "other",
+    serviceDescription: "Floral arches, stage backdrops, marquee draping, table centerpieces, and lighting design.",
+    serviceAreas: [
+      "Wedding hall & stage decor",
+      "Birthday & bridal backdrops",
+      "Balloon & floral installations",
+      "Ambient & uplighting setup",
+    ],
+    state: "fct",
+    city: "Abuja",
+    lga: "Abuja Municipal (AMAC)",
+    locationArea: "Maitama",
+    officeAddress: "31 Mississippi Street, Maitama, Abuja",
+    imageUrl: "/images/Event%20Decor.jpeg",
+    averageRating: 4.8,
+    ratingCount: 31,
+    canContact: true,
+    phoneNumber: "+2348145678901",
+    whatsappNumber: "+2348145678901",
+    subscriptionStatusBadge: "paid_active",
+  },
+  {
+    id: "dir-15-artisan-tools",
+    userId: "dir-u-15",
+    businessName: "ProCraft Handyman & Tools",
+    serviceTitle: "Handyman & Installations",
+    serviceCategory: "other",
+    serviceDescription: "TV wall mounting, curtain rod installation, shelving, lock replacement, and general home fixes.",
+    serviceAreas: [
+      "TV & bracket wall mounting",
+      "Curtain rod & blind fitting",
+      "Shelving & frame hanging",
+      "Door lock & hinge repairs",
+    ],
+    state: "rivers",
+    city: "Port Harcourt",
+    lga: "Port Harcourt",
+    locationArea: "New GRA",
+    officeAddress: "11Evo Road, New GRA, Port Harcourt",
+    imageUrl: "/images/Artisan%20tools.jpeg",
+    averageRating: 4.8,
+    ratingCount: 24,
+    canContact: true,
+    phoneNumber: "+2348156789012",
+    whatsappNumber: "+2348156789012",
+    subscriptionStatusBadge: "paid_active",
+  },
 ];
+
+export const ALL_DIRECTORY_IMAGES: readonly string[] = DIRECTORY_SHOWCASE_PROVIDERS.map(
+  (p) => p.imageUrl!
+);
 
 const CATEGORY_IMAGE_MAP: Record<string, string> = {
   plumber: "/images/Plumber.jpeg",
@@ -333,5 +415,5 @@ const CATEGORY_IMAGE_MAP: Record<string, string> = {
 
 export function resolveProviderImage(provider: ProviderListItemDTO): string {
   if (provider.imageUrl) return provider.imageUrl;
-  return CATEGORY_IMAGE_MAP[provider.serviceCategory] || "/images/Electrical%20Service.jpeg";
+  return CATEGORY_IMAGE_MAP[provider.serviceCategory] || "/images/Artisan%20tools.jpeg";
 }

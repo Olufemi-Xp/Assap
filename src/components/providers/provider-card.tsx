@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { useReducedMotion } from "motion/react";
 import { ProviderContactGate } from "./provider-contact-gate";
 import { formatLocation } from "@/lib/constants/nigeria-locations";
 import { resolveProviderImage } from "@/lib/constants/directory-showcase";
@@ -22,14 +21,11 @@ import {
 
 export interface ProviderCardProps {
   provider: ProviderListItemDTO;
-  cardIndex?: number;
 }
 
-export function ProviderCard({ provider, cardIndex = 0 }: ProviderCardProps) {
-  const prefersReduced = useReducedMotion();
-  const [autoFlipped, setAutoFlipped] = useState(false);
+export function ProviderCard({ provider }: ProviderCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [manualOverride, setManualOverride] = useState<boolean | null>(null);
+  const [isTappedFlipped, setIsTappedFlipped] = useState(false);
 
   const isShowcaseCard = provider.id.startsWith("dir-");
   const isContactVisible = provider.canContact;
@@ -46,48 +42,36 @@ export function ProviderCard({ provider, cardIndex = 0 }: ProviderCardProps) {
     provider.officeAddress ||
     [provider.locationArea, hierarchyLabel].filter(Boolean).join(", ");
 
-  // Staggered ~5-second auto-flip cycle (paused while hovered or manually overridden)
-  useEffect(() => {
-    if (prefersReduced || isHovered || manualOverride !== null) return;
+  const isFlipped = isHovered || isTappedFlipped;
 
-    const staggerMs = (cardIndex % 6) * 850 + Math.floor(cardIndex / 6) * 425;
-    let intervalId: ReturnType<typeof setInterval> | null = null;
-
-    const timeoutId = setTimeout(() => {
-      setAutoFlipped((prev) => !prev);
-      intervalId = setInterval(() => {
-        setAutoFlipped((prev) => !prev);
-      }, 5000);
-    }, staggerMs + 5000);
-
-    return () => {
-      clearTimeout(timeoutId);
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [cardIndex, isHovered, manualOverride, prefersReduced]);
-
-  const isFlipped = isHovered ? true : manualOverride !== null ? manualOverride : autoFlipped;
-
-  const handleCardToggle = () => {
-    setManualOverride((prev) => (prev === null ? !autoFlipped : !prev));
+  const handleToggleFlip = () => {
+    setIsTappedFlipped((prev) => !prev);
   };
 
   return (
     <div
       className="assap-flip-perspective h-[396px] w-full cursor-pointer select-none"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleCardToggle}
+      onPointerEnter={(e) => {
+        if (e.pointerType === "mouse") {
+          setIsHovered(true);
+        }
+      }}
+      onPointerLeave={(e) => {
+        if (e.pointerType === "mouse") {
+          setIsHovered(false);
+        }
+      }}
+      onClick={handleToggleFlip}
       role="button"
       tabIndex={0}
       aria-pressed={isFlipped}
       aria-label={`${provider.businessName} — ${provider.serviceTitle}. ${
         isFlipped ? "Showing business details" : "Showing service image"
-      }. Click to flip.`}
+      }. Hover or tap to flip.`}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          handleCardToggle();
+          handleToggleFlip();
         }
       }}
     >
